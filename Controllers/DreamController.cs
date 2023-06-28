@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using proj_csharp_kiminoyume.BusinessLogics;
 using proj_csharp_kiminoyume.Data;
@@ -9,6 +10,7 @@ namespace proj_csharp_kiminoyume.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
+    [Authorize]
     public class DreamController : ControllerBase
     {
         private AppDBContext _context;
@@ -21,6 +23,7 @@ namespace proj_csharp_kiminoyume.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<DreamListResponse> GetDreamDictionary()
         {
             var response = new DreamListResponse();
@@ -110,6 +113,7 @@ namespace proj_csharp_kiminoyume.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<CategoryResponse> GetCategories()
         {
             var response = new CategoryResponse();
