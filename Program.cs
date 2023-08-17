@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using proj_csharp_kiminoyume.Data;
+using proj_csharp_kiminoyume.Interfaces;
 using proj_csharp_kiminoyume.Services;
 using System.Text;
 
@@ -40,11 +41,12 @@ namespace proj_csharp_kiminoyume
                 ctx.UseSqlServer(builder.Configuration.GetConnectionString("ApplicationDatabase"));
             });
 
-            builder.Services.AddScoped<TokenService, TokenService>();
-
             builder.Services.AddStackExchangeRedisCache(opt => {
                 opt.Configuration = builder.Configuration.GetConnectionString("RedisCacheUrl");
             });
+
+            builder.Services.AddScoped<TokenService, TokenService>();
+            builder.Services.AddScoped<IRedisCacheService, RedisCacheService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

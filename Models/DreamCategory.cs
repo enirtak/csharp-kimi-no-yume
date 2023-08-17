@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace proj_csharp_kiminoyume.Models
@@ -14,9 +15,15 @@ namespace proj_csharp_kiminoyume.Models
         [Key]
         public int Id { get; set; }
 
+        [Required]
+        [MaxLength(255)]
         public string? CategoryName { get; set; }
 
+        [Required]
+        [MaxLength(1000)]
+        public string? Description { get; set; }
+
         // Navigation property
-        public IList<DreamDictionary> DreamDictionary { get; set; }
+        public ICollection<DreamDictionary> DreamDictionary { get; set; }
     }
 }

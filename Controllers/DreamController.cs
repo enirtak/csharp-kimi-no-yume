@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Distributed;
+﻿using Microsoft.AspNetCore.Mvc;
 using proj_csharp_kiminoyume.BusinessLogics;
 using proj_csharp_kiminoyume.Data;
+using proj_csharp_kiminoyume.Helpers;
+using proj_csharp_kiminoyume.Interfaces;
 using static proj_csharp_kiminoyume.Requests.DreamRequest;
 using static proj_csharp_kiminoyume.Responses.DreamResponse;
 
@@ -10,20 +10,20 @@ namespace proj_csharp_kiminoyume.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class DreamController : ControllerBase
     {
-        private AppDBContext _context;
-        private DreamBusinessLogic _businessLogic;
+        private readonly AppDBContext _context;
+        private readonly DreamBusinessLogic _businessLogic;
 
-        public DreamController(AppDBContext context, IDistributedCache cache)
+        public DreamController(AppDBContext context, IRedisCacheService cache)
         {
             _context = context;
             _businessLogic = new DreamBusinessLogic(context, cache);
         }
 
         [HttpGet]
-        [AllowAnonymous]
+        //[AllowAnonymous]
         public async Task<DreamListResponse> GetDreamDictionary()
         {
             var response = new DreamListResponse();
@@ -52,13 +52,16 @@ namespace proj_csharp_kiminoyume.Controllers
 
             try
             {
-                var model = new Helpers.ConvertDTOToModel().ConvertDictionaryDTOToModel(request.DreamItem);
+                var model = ConvertDTOToModel.ConvertDictionaryDTOToModel(request.DreamItem);
                 if (model != null)
                 {
-                    await _businessLogic.CreateDream(model);
+                    var result = await _businessLogic.CreateDream(model);
+                    if (result != null)
+                    {
+                        response.DreamItem = ConvertModelToDTO.ConvertDictionaryModelToDTO(result);
+                        response.IsSuccess = true;
+                    }
                 }
-
-                response.IsSuccess = true;
             }
             catch (Exception ex)
             {
@@ -76,10 +79,16 @@ namespace proj_csharp_kiminoyume.Controllers
 
             try
             {
-                var model = new Helpers.ConvertDTOToModel().ConvertDictionaryDTOToModel(request.DreamItem);
-                if (model != null) await _businessLogic.UpdateDream(model);
-
-                response.IsSuccess = true;
+                var model = ConvertDTOToModel.ConvertDictionaryDTOToModel(request.DreamItem);
+                if (model != null)
+                {
+                    var result = await _businessLogic.UpdateDream(model);
+                    if (result != null)
+                    {
+                        response.DreamItem = ConvertModelToDTO.ConvertDictionaryModelToDTO(result);
+                        response.IsSuccess = true;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -98,7 +107,7 @@ namespace proj_csharp_kiminoyume.Controllers
 
             try
             {
-                var model = new Helpers.ConvertDTOToModel().ConvertDictionaryDTOToModel(request.DreamItem);
+                var model = ConvertDTOToModel.ConvertDictionaryDTOToModel(request.DreamItem);
                 if (model != null) await _businessLogic.DeleteDream(model);
 
                 response.IsSuccess = true;
@@ -113,7 +122,7 @@ namespace proj_csharp_kiminoyume.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
+        //[AllowAnonymous]
         public async Task<CategoryResponse> GetCategories()
         {
             var response = new CategoryResponse();
@@ -133,17 +142,23 @@ namespace proj_csharp_kiminoyume.Controllers
         }
 
         [HttpPost]
-        public async Task<CategoryResponse> CreateNewCategory([FromBody] CategoryRequest request)
+        public async Task<CategoryItemResponse> CreateNewCategory([FromBody] CategoryRequest request)
         {
-            var response = new CategoryResponse();
+            var response = new CategoryItemResponse();
             if (request == null) return response;
 
             try
             {
-                var model = new Helpers.ConvertDTOToModel()?.ConvertCategoryDTOToModel(request.Category);
-                if (model != null) await _businessLogic.CreateCategory(model);
-
-                response.IsSuccess = true;
+                var model = ConvertDTOToModel.ConvertCategoryDTOToModel(request.Category);
+                if (model != null)
+                {
+                    var result = await _businessLogic.CreateCategory(model);
+                    if (result != null)
+                    {
+                        response.Category = ConvertModelToDTO.ConvertCategoryModelToDTO(result);
+                        response.IsSuccess = true;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -155,18 +170,22 @@ namespace proj_csharp_kiminoyume.Controllers
         }
 
         [HttpPost]
-        public async Task<CategoryResponse> UpdateCategory([FromBody] CategoryRequest request)
+        public async Task<CategoryItemResponse> UpdateCategory([FromBody] CategoryRequest request)
         {
-            var response = new CategoryResponse();
+            var response = new CategoryItemResponse();
             if (request == null) return response;
 
             try
             {
-                var model = new Helpers.ConvertDTOToModel()?.ConvertCategoryDTOToModel(request.Category);
+                var model = ConvertDTOToModel.ConvertCategoryDTOToModel(request.Category);
                 if (model != null)
                 {
-                    await _businessLogic.UpdateCategoryById(model);
-                    response.IsSuccess = true;
+                    var result = await _businessLogic.UpdateCategory(model);
+                    if (result != null)
+                    {
+                        response.Category = ConvertModelToDTO.ConvertCategoryModelToDTO(result);
+                        response.IsSuccess = true;
+                    }
                 }
             }
             catch (Exception ex)
@@ -186,7 +205,7 @@ namespace proj_csharp_kiminoyume.Controllers
 
             try
             {
-                var model = new Helpers.ConvertDTOToModel()?.ConvertCategoryDTOToModel(request.Category);
+                var model = ConvertDTOToModel.ConvertCategoryDTOToModel(request.Category);
                 if (model != null) await _businessLogic.DeleteCategory(model);
 
                 response.IsSuccess = true;

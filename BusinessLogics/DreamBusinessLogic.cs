@@ -1,34 +1,32 @@
-﻿using Azure;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
+﻿using Microsoft.EntityFrameworkCore;
 using proj_csharp_kiminoyume.Data;
 using proj_csharp_kiminoyume.DTOs;
+using proj_csharp_kiminoyume.Helpers;
+using proj_csharp_kiminoyume.Interfaces;
 using proj_csharp_kiminoyume.Models;
-using proj_csharp_kiminoyume.Services;
 
 namespace proj_csharp_kiminoyume.BusinessLogics
 {
     public class DreamBusinessLogic
     {
-        private AppDBContext _context;
-        private RedisCacheService _cache;
-        private string _dreamListKey = "dreamList";
-        private bool _isRedisDown = false;
+        private readonly AppDBContext _context;
+        private readonly IRedisCacheService _cache;
+        private readonly string _dreamListKey = "dreamList";
 
-        public DreamBusinessLogic(AppDBContext context, IDistributedCache cache)
+        public DreamBusinessLogic(AppDBContext context, IRedisCacheService cache)
         {
             _context = context;
-            _cache = new RedisCacheService(cache);
-            _isRedisDown = new Helpers.RedisCacheHelper().IsRedisServerDown();
+            _cache = cache;
         }
 
         public async Task<List<DreamDictionaryDTO>> GetDreamList()
         {
             var dreamList = new List<DreamDictionaryDTO>();
+            var isRedisDown = RedisCacheHelper.IsRedisServerDown();
 
             try
             {
-                if (!_isRedisDown)
+                if (!isRedisDown)
                 {
                     var result = await _cache.Get<List<DreamDictionaryDTO>>(_dreamListKey);
                     if (result != null)
@@ -38,17 +36,17 @@ namespace proj_csharp_kiminoyume.BusinessLogics
                     }
                 }
 
-                var list = await _context.DreamDictionaries.OrderBy(x => x.Id).ToListAsync();
+                var list = await _context.DreamDictionaries.OrderBy(x => x.DreamName).ToListAsync();
                 if (list.Count > 0)
                 {
                     foreach (var item in list)
                     {
-                        var dreamDTO = new Helpers.ConvertModelToDTO().ConvertDictionaryModelToDTO(item);
+                        var dreamDTO = ConvertModelToDTO.ConvertDictionaryModelToDTO(item);
                         if (dreamDTO != null) dreamList.Add(dreamDTO);
                     }
                 }
 
-                if (!_isRedisDown) await _cache.Set(_dreamListKey, list);
+                if (!isRedisDown) await _cache.Set(_dreamListKey, list);
             }
             catch (Exception ex)
             {
@@ -58,30 +56,7 @@ namespace proj_csharp_kiminoyume.BusinessLogics
             return dreamList;
         }
 
-        public async Task<DreamDictionaryDTO> GetDreamById(int id)
-        {
-            var dreamItem = new DreamDictionaryDTO();
-
-            try
-            {
-                if (id > 0)
-                {
-                    var item = await _context.DreamDictionaries.Where(x => x.Id == id).FirstOrDefaultAsync();
-                    if (item != null)
-                    {
-                        dreamItem = new Helpers.ConvertModelToDTO().ConvertDictionaryModelToDTO(item);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-
-            return dreamItem;
-        }
-
-        public async Task CreateDream(DreamDictionary request)
+        public async Task<DreamDictionary?> CreateDream(DreamDictionary request)
         {
             try
             {
@@ -92,17 +67,20 @@ namespace proj_csharp_kiminoyume.BusinessLogics
                     request.LastUpdatedDate = DateTime.Now;
                     request.LastUpdatedBy = "katorin";
 
-                    _context.DreamDictionaries.Add(request);
+                    var newDream = _context.DreamDictionaries.Add(request);
                     await _context.SaveChangesAsync();
+                    return newDream?.Entity;
                 }
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
+
+            return null;
         }
 
-        public async Task UpdateDream(DreamDictionary request)
+        public async Task<DreamDictionary?> UpdateDream(DreamDictionary request)
         {
             try
             {
@@ -118,8 +96,9 @@ namespace proj_csharp_kiminoyume.BusinessLogics
 
                         existingDef = request;
 
-                        _context.DreamDictionaries.Update(existingDef);
+                        var result = _context.DreamDictionaries.Update(existingDef);
                         await _context.SaveChangesAsync();
+                        return result?.Entity;
                     }
                 }
             }
@@ -127,6 +106,8 @@ namespace proj_csharp_kiminoyume.BusinessLogics
             {
                 throw new Exception(ex.Message);
             }
+
+            return null;
         }
 
         public async Task DeleteDream(DreamDictionary request)
@@ -160,7 +141,7 @@ namespace proj_csharp_kiminoyume.BusinessLogics
                 {
                     foreach (var item in list)
                     {
-                        var category = new Helpers.ConvertModelToDTO().ConvertCategoryModelToDTO(item);
+                        var category = ConvertModelToDTO.ConvertCategoryModelToDTO(item);
                         if (category != null) categoriesList.Add(category);
                     }
                 }
@@ -173,36 +154,40 @@ namespace proj_csharp_kiminoyume.BusinessLogics
             return categoriesList;
         }
 
-        public async Task CreateCategory(DreamCategory category)
+        public async Task<DreamCategory?> CreateCategory(DreamCategory category)
         {
             try
             {
                 if (category != null)
                 {
-                    _context.DreamCategories.Add(category);
+                    var newEntity = _context.DreamCategories.Add(category);
                     await _context.SaveChangesAsync();
+                    return newEntity?.Entity;
                 }
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
+
+            return null;
         }
 
-        public async Task UpdateCategoryById(DreamCategory categories)
+        public async Task<DreamCategory?> UpdateCategory(DreamCategory categories)
         {
             try
             {
                 if (categories != null)
                 {
-                    var category = _context.DreamCategories.Where(x => x.Id == categories.Id).FirstOrDefault();
-                    if (category != null)
+                    var oldCategory = _context.DreamCategories.Where(x => x.Id == categories.Id).FirstOrDefault();
+                    if (oldCategory != null)
                     {
-                        // replace with new values
-                        category.CategoryName = categories.CategoryName;
+                        oldCategory.CategoryName = categories.CategoryName;
+                        oldCategory.Description = categories.Description;
 
-                        _context.DreamCategories.Update(category);
+                        var newEntity = _context.DreamCategories.Update(oldCategory);
                         await _context.SaveChangesAsync();
+                        return newEntity?.Entity;
                     }
                 }
             }
@@ -210,6 +195,8 @@ namespace proj_csharp_kiminoyume.BusinessLogics
             {
                 throw new Exception(ex.Message);
             }
+
+            return null;
         }
 
         public async Task DeleteCategory(DreamCategory categories)

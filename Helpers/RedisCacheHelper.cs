@@ -2,13 +2,14 @@
 
 namespace proj_csharp_kiminoyume.Helpers
 {
-    public class RedisCacheHelper
+    public static class RedisCacheHelper
     {
-        public bool IsRedisServerDown()
+        public static bool IsRedisServerDown()
         {
             try
             {
-                var redis = ConnectionMultiplexer.Connect("RedisCacheUrl");
+                // @KAT TODO: Get from appsettings
+                var redis = ConnectionMultiplexer.Connect("127.0.0.1:6379");
                 var server = redis.GetServer(redis.GetEndPoints().First());
 
                 return !server.IsConnected;

@@ -6,21 +6,21 @@ namespace proj_csharp_kiminoyume.Responses
     {
         public class CategoryResponse : BaseResponse
         {
-            public List<DreamCategoryDTO> Categories { get; set; }
+            public List<DreamCategoryDTO>? Categories { get; set; }
         }
         public class CategoryItemResponse : BaseResponse
         {
-            public DreamCategoryDTO Category { get; set; }
+            public DreamCategoryDTO? Category { get; set; }
         }
 
         public class DreamListResponse : BaseResponse
         {
-            public List<DreamDictionaryDTO> DictionaryList { get; set; }
+            public List<DreamDictionaryDTO>? DictionaryList { get; set; }
         }
 
         public class DreamItemResponse : BaseResponse
         {
-            public DreamDictionaryDTO DreamItem { get; set; }
+            public DreamDictionaryDTO? DreamItem { get; set; }
         }
     }
 }
