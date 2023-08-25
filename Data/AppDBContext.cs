@@ -28,6 +28,12 @@ namespace proj_csharp_kiminoyume.Data
                 .HasForeignKey(p => p.DreamCategoryId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            modelBuilder.Entity<DreamCategory>()
+                .ToTable(x => x.HasTrigger("update_category_updated_date"));
+
+            modelBuilder.Entity<DreamDictionary>()
+                .ToTable(x => x.HasTrigger("update_dictionary_updated_date"));
+
             modelBuilder.Entity<Person>()
                 .ToTable(x => x.HasTrigger("trigger_person_updated_date"));
 

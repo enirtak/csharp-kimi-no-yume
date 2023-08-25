@@ -9,6 +9,11 @@ namespace proj_csharp_kiminoyume.Requests
             public DreamCategoryDTO Category { get; set; }
         }
 
+        public class CategoryIdRequest
+        {
+            public int Id { get; set; }
+        }
+
         public class DreamDictionaryRequest
         {
             public DreamDictionaryDTO DreamItem { get; set; }

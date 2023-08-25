@@ -9,7 +9,6 @@ namespace proj_csharp_kiminoyume.Models
         [Key]
         public int Id { get; set; }
 
-        [Required]
         [MaxLength(255)]
         public string? Address1 { get; set; }
 
@@ -19,10 +18,9 @@ namespace proj_csharp_kiminoyume.Models
         [MaxLength(100)]
         public string? City { get; set; }
 
-        [MaxLength(2)]
+        [MaxLength(5)]
         public string? State { get; set; }
 
-        [Required]
         [MaxLength(100)]
         public string? Country { get; set; }
 

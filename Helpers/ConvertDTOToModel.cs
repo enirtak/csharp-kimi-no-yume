@@ -32,7 +32,8 @@ namespace proj_csharp_kiminoyume.Helpers
                 {
                     Id = category.Id,
                     CategoryName = category.CategoryName,
-                    Description = category.Description
+                    Description = category.Description,
+                    IsActive = category.IsActive
                 };
 
                 listCategories.Add(model);
@@ -49,7 +50,8 @@ namespace proj_csharp_kiminoyume.Helpers
             {
                 Id = dto.Id,
                 CategoryName = dto.CategoryName,
-                Description = dto.Description
+                Description = dto.Description,
+                IsActive = dto.IsActive
             };
 
             return model;

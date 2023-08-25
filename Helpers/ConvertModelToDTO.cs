@@ -18,26 +18,6 @@ namespace proj_csharp_kiminoyume.Helpers
             };
         }
 
-        public static List<DreamCategoryDTO>? ConvertDreamCategoryModelToDTO(IList<DreamCategory> category)
-        {
-            if (category.Count == 0) return null;
-
-            var listCategories = new List<DreamCategoryDTO>();
-            foreach (var cat in category)
-            {
-                var dto = new DreamCategoryDTO()
-                {
-                    Id = cat.Id,
-                    CategoryName = cat.CategoryName,
-                    Description = cat.Description
-                };
-
-                listCategories.Add(dto);
-            }
-
-            return listCategories;
-        }
-
         public static DreamCategoryDTO? ConvertCategoryModelToDTO(DreamCategory model)
         {
             if (model == null) return null;
@@ -46,11 +26,12 @@ namespace proj_csharp_kiminoyume.Helpers
             {
                 Id = model.Id,
                 CategoryName = model.CategoryName,
-                Description = model.Description
+                Description = model.Description,
+                IsActive = model.IsActive.GetValueOrDefault()
             };
         }
 
-        public static PersonDTO ConvertPersonModelToDTO(Person data)
+        public static PersonDTO ConvertPersonModelToDTO(Person? data)
         {
             if (data == null) return null!;
 
@@ -66,7 +47,7 @@ namespace proj_csharp_kiminoyume.Helpers
                 Other = data.Other,
                 PhoneNumber = data.PhoneNumber,
                 WebsiteUrl = data.WebsiteUrl,
-                IsActive = data.IsActive,
+                IsActive = data.IsActive.GetValueOrDefault(),
                 Addresses = ConvertAddressModelToDTO(data.Addresses!),
                 Employers = ConvertEmployerModelToDTO(data.Employers!),
                 Skills = ConvertSkillsModelToDTO(data.Skills!),
@@ -91,7 +72,7 @@ namespace proj_csharp_kiminoyume.Helpers
                     State = d.State,
                     Zip = d.Zip,
                     Country = d.Country,
-                    IsActive = d.IsActive
+                    IsActive = d.IsActive.GetValueOrDefault()
                 });
             }
 
@@ -120,7 +101,7 @@ namespace proj_csharp_kiminoyume.Helpers
                     State = d.State,
                     Zip = d.Zip,
                     Country = d.Country,
-                    IsActive = d.IsActive,
+                    IsActive = d.IsActive.GetValueOrDefault(),
                     WorkExps = ConvertWorkExpModelToDTO(d.WorkExperience!)
                 });
             }
@@ -139,7 +120,7 @@ namespace proj_csharp_kiminoyume.Helpers
                     Id = d.Id,
                     EmployerId = d.EmployerId,
                     Description = d.Description,
-                    IsActive = d.IsActive
+                    IsActive = d.IsActive.GetValueOrDefault()
                 });
             }
 
@@ -159,7 +140,7 @@ namespace proj_csharp_kiminoyume.Helpers
                     PersonId = d.PersonId,
                     SkillName = d.SkillName,
                     SkillType = d.SkillType,
-                    IsActive = d.IsActive
+                    IsActive = d.IsActive.GetValueOrDefault()
                 });
             }
 
@@ -180,11 +161,29 @@ namespace proj_csharp_kiminoyume.Helpers
                     ProjectName = d.ProjectName,
                     ProjectDescription = d.ProjectDescription,
                     ProjectStatus = d.ProjectStatus,
-                    IsActive = d.IsActive
+                    IsActive = d.IsActive.GetValueOrDefault()
                 });
             }
 
             return list;
+        }
+
+        public static List<PersonDTO?> ConvertPersonModelToDTO(List<Person> persons)
+        {
+            var result = new List<PersonDTO?>();
+            if (persons.Count > 0)
+            {
+                foreach (var person in persons)
+                {
+                    var personDTO = ConvertModelToDTO.ConvertPersonModelToDTO(person);
+                    if (personDTO != null)
+                    {
+                        result.Add(personDTO);
+                    }
+                }
+            }
+
+            return result;
         }
     }
 }

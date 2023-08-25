@@ -1,10 +1,8 @@
-﻿using Azure;
-using Microsoft.AspNetCore.Mvc;
-using proj_csharp_kiminoyume.BusinessLogics;
-using proj_csharp_kiminoyume.Data;
+﻿using Microsoft.AspNetCore.Mvc;
 using proj_csharp_kiminoyume.Helpers;
 using proj_csharp_kiminoyume.Requests;
 using proj_csharp_kiminoyume.Responses;
+using proj_csharp_kiminoyume.Services.Profile;
 
 namespace proj_csharp_kiminoyume.Controllers
 {
@@ -12,13 +10,11 @@ namespace proj_csharp_kiminoyume.Controllers
     [ApiController]
     public class ProfileController : ControllerBase
     {
-        private AppDBContext _context;
-        private ProfileBusinessLogic _profileBusinessLogic;
+        private IProfileBusinessLogic _profileBusinessLogic;
 
-        public ProfileController(AppDBContext context)
+        public ProfileController(IProfileBusinessLogic profileBusinessLogic)
         {
-            _context = context;
-            _profileBusinessLogic = new ProfileBusinessLogic(context);
+            _profileBusinessLogic = profileBusinessLogic;
         }
 
         [HttpPost]
@@ -56,7 +52,7 @@ namespace proj_csharp_kiminoyume.Controllers
                 var profileList = await _profileBusinessLogic.GetProfileList(request.IsGetAll);
                 if (profileList != null && profileList.Count > 0)
                 {
-                    var profilesDTO = _profileBusinessLogic.ConvertPersonToDTO(profileList);
+                    var profilesDTO = ConvertModelToDTO.ConvertPersonModelToDTO(profileList);
                     response.Persons = profilesDTO;
                     response.IsSuccess = true;
                 }
@@ -76,10 +72,10 @@ namespace proj_csharp_kiminoyume.Controllers
             var response = new ProfileResponse();
             try
             {
-                var profile = await _profileBusinessLogic.GetCurrentProfile();
-                if (profile != null)
+                var result = await _profileBusinessLogic.GetProfile();
+                if (result != null)
                 {
-                    var profileDTO = ConvertModelToDTO.ConvertPersonModelToDTO(profile);
+                    var profileDTO = ConvertModelToDTO.ConvertPersonModelToDTO(result);
                     response.Person = profileDTO;
                     response.IsSuccess = true;
                 }
@@ -92,7 +88,6 @@ namespace proj_csharp_kiminoyume.Controllers
 
             return response;
         }
-
 
         [HttpPut]
         public async Task<ProfileResponse> UpdateProfile(ProfileRequest request)

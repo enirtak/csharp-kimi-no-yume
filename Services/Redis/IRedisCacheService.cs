@@ -1,4 +1,4 @@
-﻿namespace proj_csharp_kiminoyume.Interfaces
+﻿namespace proj_csharp_kiminoyume.Services.Redis
 {
     public interface IRedisCacheService
     {

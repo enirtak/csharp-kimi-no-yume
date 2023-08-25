@@ -5,25 +5,18 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace proj_csharp_kiminoyume.Models
 {
     [Table("DreamCategory")]
-    public class DreamCategory
+    public class DreamCategory : BaseModel
     {
-        public DreamCategory()
-        {
-            DreamDictionary = new List<DreamDictionary>();
-        }
-
         [Key]
         public int Id { get; set; }
 
-        [Required]
         [MaxLength(255)]
         public string? CategoryName { get; set; }
 
-        [Required]
         [MaxLength(1000)]
         public string? Description { get; set; }
 
         // Navigation property
-        public ICollection<DreamDictionary> DreamDictionary { get; set; }
+        public virtual ICollection<DreamDictionary>? DreamDictionary { get; set; } = new List<DreamDictionary>();
     }
 }

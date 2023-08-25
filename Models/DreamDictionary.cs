@@ -24,6 +24,6 @@ namespace proj_csharp_kiminoyume.Models
         public int DreamCategoryId { get; set; }
 
         // Navigation property
-        public virtual DreamCategory DreamCategory { get; set; }
+        public virtual DreamCategory? DreamCategory { get; set; }
     }
 }

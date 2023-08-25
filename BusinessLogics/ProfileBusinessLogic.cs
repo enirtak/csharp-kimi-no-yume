@@ -3,10 +3,12 @@ using proj_csharp_kiminoyume.Data;
 using proj_csharp_kiminoyume.DTOs;
 using proj_csharp_kiminoyume.Helpers;
 using proj_csharp_kiminoyume.Models;
+using proj_csharp_kiminoyume.Services.Profile;
+using System.Security.Principal;
 
 namespace proj_csharp_kiminoyume.BusinessLogics
 {
-    public class ProfileBusinessLogic
+    public class ProfileBusinessLogic : IProfileBusinessLogic
     {
         private readonly AppDBContext _dbContext;
 
@@ -15,6 +17,143 @@ namespace proj_csharp_kiminoyume.BusinessLogics
             _dbContext = dbContext;
         }
 
+        public async Task<Person?> CreateNewProfile(Person request)
+        {
+            try
+            {
+                if (request != null)
+                {
+                    var newProfile = _dbContext.Persons.Add(request);
+                    await _dbContext.SaveChangesAsync();
+                    return newProfile?.Entity;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return null;
+        }
+
+        public async Task<List<Person>> GetProfileList(bool getAll = false)
+        {
+            try
+            {
+                var profile =
+                    await _dbContext.Persons.Where(x => x.IsActive == getAll)
+                    .Include(x => x.Addresses.Where(x => x.IsActive == getAll))
+                    .Include(x => x.Employers.Where(x => x.IsActive == getAll))
+                    .ThenInclude(x => x.WorkExperience.Where(x => x.IsActive == getAll))
+                    .Include(x => x.Skills.Where(x => x.IsActive == getAll))
+                    .Include(x => x.Projects.Where(x => x.IsActive == getAll))
+                    .AsNoTracking()
+                    .ToListAsync();
+
+
+                return profile;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                throw;
+            }
+        }
+
+        public async Task<Person?> GetProfile()
+        {
+            try
+            {
+                var profile = await _dbContext.Persons.OrderByDescending(x => x.CreatedDate).Where(x => x.IsActive.GetValueOrDefault())
+                    .Include(x => x.Addresses.OrderByDescending(x => x.CreatedDate).Where(y => y.IsActive.GetValueOrDefault()))
+                    .Include(x => x.Employers.Where(x => x.IsActive.GetValueOrDefault()))
+                    .ThenInclude(x => x.WorkExperience.Where(x => x.IsActive.GetValueOrDefault()))
+                    //.Include(x => x.Skills.Where(x => x.IsActive))
+                    //.Include(x => x.Projects.Where(x => x.IsActive))
+                    .FirstOrDefaultAsync();
+
+                return profile;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return null;
+        }
+
+        // https://stackoverflow.com/questions/27176014/how-to-add-update-child-entities-when-updating-a-parent-entity-in-ef
+        public async Task<Person?> UpdateProfile(Person request)
+        {
+            try
+            {
+                if (request != null && request.Id != default)
+                {
+                    var oldEntity = await GetProfileById(request.Id);
+                    if (oldEntity != null)
+                    {
+                        // IsActive = false will soft delete a record
+                     // update parent - Person
+                        var updatedPerson = _dbContext.Entry(oldEntity);
+                        updatedPerson.CurrentValues.SetValues(request);
+
+                        // create/update children
+                        // addresses
+                        UpSertEntityHelper<Address>
+                            .UpSertEntities(_dbContext, request.Addresses, oldEntity.Addresses,
+                            (request, old) => { return request.PersonId == oldEntity.Id && old.Id == old.Id; });
+
+                        // employers & work exps
+                        UpSertEmployers(request.Employers, oldEntity.Employers, oldEntity.Id);
+
+                        //// skills
+                        //UpSertEntityHelper<Skills>
+                        //    .UpSertEntities(_dbContext, request.Skills, oldEntity.Skills, 
+                        //    (request,old) => { return request.PersonId == oldEntity.Id && old.Id == old.Id; });
+
+                        //// projects
+                        //UpSertEntityHelper<Projects>
+                        //    .UpSertEntities(_dbContext, request.Projects, oldEntity.Projects, 
+                        //    (request,old) => { return request.PersonId == oldEntity.Id && old.Id == old.Id; });
+
+                        updatedPerson.State = EntityState.Modified;
+                        await _dbContext.SaveChangesAsync();
+                        return updatedPerson.Entity;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message.ToString());
+                throw;
+            }
+
+            return null;
+        }
+        
+        public async Task<Person?> GetProfileById(int id)
+        {
+            try
+            {
+                var profile = 
+                    await _dbContext
+                        .Persons.Where(x => x.Id == id && x.IsActive.GetValueOrDefault())
+                        .Include(x => x.Addresses.OrderByDescending(x => x.CreatedDate).Where(y => y.IsActive.GetValueOrDefault()))
+                        .Include(x => x.Employers.Where(x => x.IsActive.GetValueOrDefault()))
+                        .ThenInclude(x => x.WorkExperience.Where(x => x.IsActive.GetValueOrDefault()))
+                        .FirstOrDefaultAsync();
+
+                return profile;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return null;
+        }
+
+        #region Non-Abstract Methods
         public PersonDTO? CreateDummyPersonRequest()
         {
             return new PersonDTO()
@@ -94,162 +233,6 @@ namespace proj_csharp_kiminoyume.BusinessLogics
                 }
             };
         }
-
-        public async Task<Person?> CreateNewProfile(Person request)
-        {
-            try
-            {
-                if (request != null)
-                {
-                    var newProfile = _dbContext.Persons.Add(request);
-                    await _dbContext.SaveChangesAsync();
-                    return newProfile?.Entity;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-
-            return null;
-        }
-
-        public async Task<List<Person>> GetProfileList(bool getAll = false)
-        {
-            try
-            {
-                var profile =
-                    await _dbContext.Persons.Where(x => x.IsActive == getAll)
-                    .Include(x => x.Addresses.Where(x => x.IsActive == getAll))
-                    .Include(x => x.Employers.Where(x => x.IsActive == getAll))
-                    .ThenInclude(x => x.WorkExperience.Where(x => x.IsActive == getAll))
-                    .Include(x => x.Skills.Where(x => x.IsActive == getAll))
-                    .Include(x => x.Projects.Where(x => x.IsActive == getAll))
-                    .AsNoTracking()
-                    .ToListAsync();
-
-
-                return profile;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                throw;
-            }
-        }
-
-        public List<PersonDTO> ConvertPersonToDTO(List<Person> persons)
-        {
-            var result = new List<PersonDTO>();
-            if (persons.Count > 0)
-            {
-                foreach (var person in persons)
-                {
-                    var personDTO = ConvertModelToDTO.ConvertPersonModelToDTO(person);
-                    if (personDTO != null)
-                    {
-                        result.Add(personDTO);
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        public async Task<List<Person>?> GetProfile()
-        {
-            try
-            {
-                var profile = await _dbContext.Persons.OrderByDescending(x => x.CreatedDate).Where(x => x.IsActive)
-                    .Include(x => x.Addresses.OrderByDescending(x => x.CreatedDate).Where(y => y.IsActive))
-                    .Include(x => x.Employers.Where(x => x.IsActive))
-                    .ThenInclude(x => x.WorkExperience.Where(x => x.IsActive))
-                    .Include(x => x.Skills.Where(x => x.IsActive))
-                    .Include(x => x.Projects.Where(x => x.IsActive))
-                    .OrderByDescending(x => x.CreatedDate)
-                    .ToListAsync();
-
-                return profile;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-
-            return null;
-        }
-
-        public async Task<Person?> GetCurrentProfile()
-        {
-            try
-            {
-                var profile = await GetProfile();
-                if (profile != null)
-                {
-                    return profile.FirstOrDefault();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-
-            return null;
-        }
-
-        // https://stackoverflow.com/questions/27176014/how-to-add-update-child-entities-when-updating-a-parent-entity-in-ef
-        public async Task<Person?> UpdateProfile(Person request)
-        {
-            try
-            {
-                if (request != null && request.Id != default)
-                {
-                    var profile = await GetProfile();
-                    if (profile != null)
-                    {
-                        var oldEntity = profile.FirstOrDefault(x => x.Id == request.Id);
-                        if (oldEntity != null)
-                        {
-                            // IsActive = false will soft delete a record
-                            // update parent - Person
-                            var updatedPerson = _dbContext.Entry(oldEntity);
-                            updatedPerson.CurrentValues.SetValues(request);
-
-                            // create/update children
-                            // addresses
-                            UpSertEntityHelper<Address>
-                                .UpSertEntities(_dbContext, request.Addresses, oldEntity.Addresses,
-                                (request, old) => { return request.PersonId == oldEntity.Id && old.Id == old.Id; });
-
-                            // employers & work exps
-                            UpSertEmployers(request.Employers, oldEntity.Employers, oldEntity.Id);
-
-                            //// skills
-                            //UpSertEntityHelper<Skills>
-                            //    .UpSertEntities(_dbContext, request.Skills, oldEntity.Skills, 
-                            //    (request,old) => { return request.PersonId == oldEntity.Id && old.Id == old.Id; });
-
-                            //// projects
-                            //UpSertEntityHelper<Projects>
-                            //    .UpSertEntities(_dbContext, request.Projects, oldEntity.Projects, 
-                            //    (request,old) => { return request.PersonId == oldEntity.Id && old.Id == old.Id; });
-
-                            updatedPerson.State = EntityState.Modified;
-                            await _dbContext.SaveChangesAsync();
-                            return updatedPerson.Entity;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message.ToString());
-                throw;
-            }
-
-            return null;
-        }
-
         private void UpSertEmployers(ICollection<Employer> employers, ICollection<Employer> oldEmployers, int personId)
         {
             if (employers.Count == 0) return;
@@ -274,5 +257,6 @@ namespace proj_csharp_kiminoyume.BusinessLogics
                 }
             }
         }
+        #endregion
     }
 }

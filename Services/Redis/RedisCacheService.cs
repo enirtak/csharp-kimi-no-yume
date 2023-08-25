@@ -1,10 +1,9 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
-using proj_csharp_kiminoyume.Interfaces;
 using System.Text.Json;
 
-namespace proj_csharp_kiminoyume.Services
+namespace proj_csharp_kiminoyume.Services.Redis
 {
-    public class RedisCacheService: IRedisCacheService
+    public class RedisCacheService : IRedisCacheService
     {
         private static IDistributedCache? _cache;
         private readonly DistributedCacheEntryOptions options = new DistributedCacheEntryOptions()

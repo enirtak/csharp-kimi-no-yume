@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using proj_csharp_kiminoyume.Data;
 using proj_csharp_kiminoyume.Requests;
 using proj_csharp_kiminoyume.Responses;
-using proj_csharp_kiminoyume.Services;
+using proj_csharp_kiminoyume.Services.Auth;
 
 namespace proj_csharp_kiminoyume.Controllers
 {

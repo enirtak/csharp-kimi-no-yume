@@ -5,7 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace proj_csharp_kiminoyume.Services
+namespace proj_csharp_kiminoyume.Services.Auth
 {
     public class TokenService
     {
@@ -67,7 +67,8 @@ namespace proj_csharp_kiminoyume.Services
 
                 return claims;
             }
-            catch(Exception ex) {
+            catch (Exception ex)
+            {
                 Console.WriteLine("Exception at CreateClaim | " + ex);
                 throw;
             }
@@ -77,7 +78,7 @@ namespace proj_csharp_kiminoyume.Services
         // and ensures its integrity during authentication & authorization process
         private SigningCredentials CreateSigningCredentials()
         {
-            #pragma warning disable CS8604 // Possible null reference argument.
+#pragma warning disable CS8604 // Possible null reference argument.
 
             // represents the credentials used to sign JWT 
             // included key & algo (HmacSha256)
