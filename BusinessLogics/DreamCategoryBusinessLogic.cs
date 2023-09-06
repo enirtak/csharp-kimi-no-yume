@@ -22,20 +22,23 @@ namespace proj_csharp_kiminoyume.BusinessLogics
 
             try
             {
-                // @KAT TODO: Add NG validation for model required fields
-                var list = await _context.DreamCategories.OrderBy(x => x.CategoryName).ToListAsync();
-                if (list!= null && list.Count > 0)
+                var list = await _context.DreamCategories
+                    .Where(x => x.IsActive == true)
+                    .OrderBy(x => x.CategoryName)
+                    .ToListAsync();
+
+                if (list is not null && list.Count > 0)
                 {
                     foreach (var item in list)
                     {
                         var category = ConvertModelToDTO.ConvertCategoryModelToDTO(item);
-                        if (category != null) categoriesList.Add(category);
+                        if (category is not null) categoriesList.Add(category);
                     }
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                throw new Exception(ex.Message);
+                throw;
             }
 
             return categoriesList;
@@ -45,45 +48,49 @@ namespace proj_csharp_kiminoyume.BusinessLogics
         {
             try
             {
-                if (category != null)
+                if (category is not null)
                 {
                     var newEntity = _context.DreamCategories.Add(category);
                     await _context.SaveChangesAsync();
                     return newEntity?.Entity;
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                throw new Exception(ex.Message);
+                throw;
             }
 
             return null;
         }
 
-        public async Task<DreamCategory?> UpdateCategory(DreamCategory categories)
+        public async Task<DreamCategory?> UpdateCategory(DreamCategory category)
         {
+            DreamCategory? dreamCategory = null;
+
             try
             {
-                if (categories != null)
+                if (category is not null && category.Id != default)
                 {
-                    var oldCategory = _context.DreamCategories.Where(x => x.Id == categories.Id).FirstOrDefault();
-                    if (oldCategory != null)
+                    dreamCategory = await _context.DreamCategories.FindAsync(category.Id);
+                    if (dreamCategory is not null)
                     {
-                        oldCategory.CategoryName = categories.CategoryName;
-                        oldCategory.Description = categories.Description;
+                        // https://stackoverflow.com/a/30824229 https://stackoverflow.com/a/60919670
+                        // context.Entry(entity).State = EntityState.Modified | DbSet.Update -> this will update all the fields on the entity
+                        // DbSet.Attach(entity) -> will only update dirty fields
 
-                        var newEntity = _context.DreamCategories.Update(oldCategory);
+                        _context.Entry(dreamCategory).CurrentValues.SetValues(category);
                         await _context.SaveChangesAsync();
-                        return newEntity?.Entity;
+
+                        return dreamCategory;
                     }
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                throw new Exception(ex.Message);
+                throw;
             }
 
-            return null;
+            return dreamCategory;
         }
 
         public async Task DeleteCategory(int categoryId)
@@ -92,19 +99,15 @@ namespace proj_csharp_kiminoyume.BusinessLogics
             {
                 if (categoryId != default)
                 {
-                    var dreamTheme = _context.DreamCategories.Where(x => x.Id == categoryId).FirstOrDefault();
-                    if (dreamTheme != null)
-                    {
-                        dreamTheme.IsActive = false;
-
-                        _context.DreamCategories.Update(dreamTheme);
-                        await _context.SaveChangesAsync();
-                    }
+                    await _context.DreamCategories
+                            .Where(x => x.Id == categoryId)
+                            .ExecuteUpdateAsync(update =>
+                                update.SetProperty(dream => dream.IsActive, false));
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                throw new Exception(ex.Message);
+                throw;
             }
         }
     }

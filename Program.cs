@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using proj_csharp_kiminoyume.BusinessLogics;
 using proj_csharp_kiminoyume.Data;
+using proj_csharp_kiminoyume.Middlewares;
 using proj_csharp_kiminoyume.Services.Auth;
 using proj_csharp_kiminoyume.Services.DreamCategory;
 using proj_csharp_kiminoyume.Services.DreamDictionary;
@@ -16,6 +17,7 @@ namespace proj_csharp_kiminoyume
 {
     public class Program
     {
+        // https://www.youtube.com/watch?v=H3EbflpXVmo
         public static void Main(string[] args)
         {
             var angularConnection = "_allowAngularConnection";
@@ -54,6 +56,7 @@ namespace proj_csharp_kiminoyume
             builder.Services.AddScoped<IDreamDictionaryBusinessLogic, DreamDictionaryBusinessLogic>();
             builder.Services.AddScoped<IDreamCategoryBusinessLogic, DreamCategoryBusinessLogic>();
             builder.Services.AddScoped<IProfileBusinessLogic, ProfileBusinessLogic>();
+            builder.Services.AddTransient<ExceptionHandling>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -139,11 +142,13 @@ namespace proj_csharp_kiminoyume
                 app.UseSwaggerUI();
             }
 
-            app.UseCors(angularConnection);
+            app.UseMiddleware<ExceptionHandling>();
 
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors(angularConnection);
 
             app.UseAuthentication();
 

@@ -10,11 +10,11 @@ namespace proj_csharp_kiminoyume.BusinessLogics
 {
     public class ProfileBusinessLogic : IProfileBusinessLogic
     {
-        private readonly AppDBContext _dbContext;
+        private readonly AppDBContext _context;
 
-        public ProfileBusinessLogic(AppDBContext dbContext)
+        public ProfileBusinessLogic(AppDBContext context)
         {
-            _dbContext = dbContext;
+            _context = context;
         }
 
         public async Task<Person?> CreateNewProfile(Person request)
@@ -23,8 +23,8 @@ namespace proj_csharp_kiminoyume.BusinessLogics
             {
                 if (request != null)
                 {
-                    var newProfile = _dbContext.Persons.Add(request);
-                    await _dbContext.SaveChangesAsync();
+                    var newProfile = _context.Persons.Add(request);
+                    await _context.SaveChangesAsync();
                     return newProfile?.Entity;
                 }
             }
@@ -40,13 +40,14 @@ namespace proj_csharp_kiminoyume.BusinessLogics
         {
             try
             {
-                var profile =
-                    await _dbContext.Persons.Where(x => x.IsActive == getAll)
-                    .Include(x => x.Addresses.Where(x => x.IsActive == getAll))
-                    .Include(x => x.Employers.Where(x => x.IsActive == getAll))
-                    .ThenInclude(x => x.WorkExperience.Where(x => x.IsActive == getAll))
-                    .Include(x => x.Skills.Where(x => x.IsActive == getAll))
-                    .Include(x => x.Projects.Where(x => x.IsActive == getAll))
+                var profile = await _context.Persons
+                    .Where(x => x.IsActive == getAll)
+                        .Include(x => x.Addresses
+                            .Where(y => y.IsActive == getAll))
+                        .Include(x => x.Employers
+                            .Where(x => x.IsActive == getAll))
+                                .ThenInclude(x => x.WorkExperience
+                                    .Where(x => x.IsActive == getAll))
                     .AsNoTracking()
                     .ToListAsync();
 
@@ -64,13 +65,15 @@ namespace proj_csharp_kiminoyume.BusinessLogics
         {
             try
             {
-                var profile = await _dbContext.Persons.OrderByDescending(x => x.CreatedDate).Where(x => x.IsActive.GetValueOrDefault())
-                    .Include(x => x.Addresses.OrderByDescending(x => x.CreatedDate).Where(y => y.IsActive.GetValueOrDefault()))
-                    .Include(x => x.Employers.Where(x => x.IsActive.GetValueOrDefault()))
-                    .ThenInclude(x => x.WorkExperience.Where(x => x.IsActive.GetValueOrDefault()))
-                    //.Include(x => x.Skills.Where(x => x.IsActive))
-                    //.Include(x => x.Projects.Where(x => x.IsActive))
-                    .FirstOrDefaultAsync();
+                var profile = await _context.Persons
+                    .OrderByDescending(x => x.CreatedDate)
+                        .Include(x => x.Addresses
+                            .Where(y => y.IsActive))
+                        .Include(x => x.Employers
+                            .Where(x => x.IsActive))
+                                .ThenInclude(x => x.WorkExperience
+                                    .Where(x => x.IsActive))
+                    .FirstOrDefaultAsync(x => x.IsActive);
 
                 return profile;
             }
@@ -93,14 +96,14 @@ namespace proj_csharp_kiminoyume.BusinessLogics
                     if (oldEntity != null)
                     {
                         // IsActive = false will soft delete a record
-                     // update parent - Person
-                        var updatedPerson = _dbContext.Entry(oldEntity);
+                        // update parent - Person
+                        var updatedPerson = _context.Entry(oldEntity);
                         updatedPerson.CurrentValues.SetValues(request);
 
                         // create/update children
                         // addresses
                         UpSertEntityHelper<Address>
-                            .UpSertEntities(_dbContext, request.Addresses, oldEntity.Addresses,
+                            .UpSertEntities(_context, request.Addresses, oldEntity.Addresses,
                             (request, old) => { return request.PersonId == oldEntity.Id && old.Id == old.Id; });
 
                         // employers & work exps
@@ -108,16 +111,16 @@ namespace proj_csharp_kiminoyume.BusinessLogics
 
                         //// skills
                         //UpSertEntityHelper<Skills>
-                        //    .UpSertEntities(_dbContext, request.Skills, oldEntity.Skills, 
+                        //    .UpSertEntities(_context, request.Skills, oldEntity.Skills, 
                         //    (request,old) => { return request.PersonId == oldEntity.Id && old.Id == old.Id; });
 
                         //// projects
                         //UpSertEntityHelper<Projects>
-                        //    .UpSertEntities(_dbContext, request.Projects, oldEntity.Projects, 
+                        //    .UpSertEntities(_context, request.Projects, oldEntity.Projects, 
                         //    (request,old) => { return request.PersonId == oldEntity.Id && old.Id == old.Id; });
 
                         updatedPerson.State = EntityState.Modified;
-                        await _dbContext.SaveChangesAsync();
+                        await _context.SaveChangesAsync();
                         return updatedPerson.Entity;
                     }
                 }
@@ -136,12 +139,12 @@ namespace proj_csharp_kiminoyume.BusinessLogics
             try
             {
                 var profile = 
-                    await _dbContext
-                        .Persons.Where(x => x.Id == id && x.IsActive.GetValueOrDefault())
-                        .Include(x => x.Addresses.OrderByDescending(x => x.CreatedDate).Where(y => y.IsActive.GetValueOrDefault()))
-                        .Include(x => x.Employers.Where(x => x.IsActive.GetValueOrDefault()))
-                        .ThenInclude(x => x.WorkExperience.Where(x => x.IsActive.GetValueOrDefault()))
-                        .FirstOrDefaultAsync();
+                    await _context
+                        .Persons
+                            .Include(x => x.Addresses.OrderByDescending(x => x.CreatedDate).Where(y => y.IsActive == true))
+                            .Include(x => x.Employers.Where(x => x.IsActive == true))
+                                .ThenInclude(x => x.WorkExperience.Where(x => x.IsActive == true))
+                            .FirstOrDefaultAsync(x => x.Id == id && x.IsActive == true);
 
                 return profile;
             }
@@ -241,19 +244,19 @@ namespace proj_csharp_kiminoyume.BusinessLogics
                 var existing = oldEmployers.Where(x => x.PersonId == personId && x.Id != default && x.Id == emp.Id).SingleOrDefault();
                 if (existing != null)
                 {
-                    UpSertEntityHelper<Employer>.UpdateEntity(_dbContext, emp, existing);
+                    UpSertEntityHelper<Employer>.UpdateEntity(_context, emp, existing);
 
                     var newWorkExp = employers?.Where(x => x.Id == existing.Id)?.SingleOrDefault()?.WorkExperience?.ToList();
                     if (newWorkExp != null && newWorkExp.Count > 0)
                     {
                         UpSertEntityHelper<WorkExperience>
-                            .UpSertEntities(_dbContext, newWorkExp, existing.WorkExperience,
+                            .UpSertEntities(_context, newWorkExp, existing.WorkExperience,
                             (request, old) => { return request.EmployerId == existing.Id && old.Id == old.Id; });
                     }
                 }
                 else
                 {
-                    UpSertEntityHelper<Employer>.AddEntity(_dbContext, emp, oldEmployers);
+                    UpSertEntityHelper<Employer>.AddEntity(_context, emp, oldEmployers);
                 }
             }
         }

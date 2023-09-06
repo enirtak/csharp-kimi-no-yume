@@ -1,5 +1,6 @@
 ﻿using proj_csharp_kiminoyume.DTOs;
 using proj_csharp_kiminoyume.Models;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace proj_csharp_kiminoyume.Helpers
 {
@@ -27,13 +28,13 @@ namespace proj_csharp_kiminoyume.Helpers
                 Id = model.Id,
                 CategoryName = model.CategoryName,
                 Description = model.Description,
-                IsActive = model.IsActive.GetValueOrDefault()
+                IsActive = model.IsActive
             };
         }
 
-        public static PersonDTO ConvertPersonModelToDTO(Person? data)
+        public static PersonDTO? ConvertPersonModelToDTO(Person? data)
         {
-            if (data == null) return null!;
+            if (data == null) return null;
 
             return new PersonDTO()
             {
@@ -47,7 +48,7 @@ namespace proj_csharp_kiminoyume.Helpers
                 Other = data.Other,
                 PhoneNumber = data.PhoneNumber,
                 WebsiteUrl = data.WebsiteUrl,
-                IsActive = data.IsActive.GetValueOrDefault(),
+                IsActive = data.IsActive,
                 Addresses = ConvertAddressModelToDTO(data.Addresses!),
                 Employers = ConvertEmployerModelToDTO(data.Employers!),
                 Skills = ConvertSkillsModelToDTO(data.Skills!),
@@ -55,9 +56,9 @@ namespace proj_csharp_kiminoyume.Helpers
             };
         }
 
-        private static List<AddressDTO> ConvertAddressModelToDTO(ICollection<Address> data)
+        private static List<AddressDTO>? ConvertAddressModelToDTO(ICollection<Address> data)
         {
-            if (data.Count == 0) return null!;
+            if (data.Count == 0) return null;
 
             var list = new List<AddressDTO>();
             foreach (var d in data)
@@ -72,7 +73,7 @@ namespace proj_csharp_kiminoyume.Helpers
                     State = d.State,
                     Zip = d.Zip,
                     Country = d.Country,
-                    IsActive = d.IsActive.GetValueOrDefault()
+                    IsActive = d.IsActive
                 });
             }
 
@@ -101,18 +102,18 @@ namespace proj_csharp_kiminoyume.Helpers
                     State = d.State,
                     Zip = d.Zip,
                     Country = d.Country,
-                    IsActive = d.IsActive.GetValueOrDefault(),
-                    WorkExps = ConvertWorkExpModelToDTO(d.WorkExperience!)
+                    IsActive = d.IsActive,
+                    WorkExps = ConvertWorkExpModelToDTO(d.WorkExperience)!
                 });
             }
             return list;
         }
 
-        private static List<WorkExperienceDTO> ConvertWorkExpModelToDTO(ICollection<WorkExperience> data)
+        private static List<WorkExperienceDTO>? ConvertWorkExpModelToDTO(ICollection<WorkExperience> data)
         {
-            if (data == null) return null!;
-
+            if (data == null || data.Count == 0) return null;
             var list = new List<WorkExperienceDTO>();
+
             foreach (var d in data)
             {
                 list.Add(new WorkExperienceDTO()
@@ -120,18 +121,18 @@ namespace proj_csharp_kiminoyume.Helpers
                     Id = d.Id,
                     EmployerId = d.EmployerId,
                     Description = d.Description,
-                    IsActive = d.IsActive.GetValueOrDefault()
+                    IsActive = d.IsActive
                 });
             }
 
             return list;
         }
 
-        private static List<SkillsDTO> ConvertSkillsModelToDTO(ICollection<Skills> data)
+        private static List<SkillsDTO>? ConvertSkillsModelToDTO(ICollection<Skills> data)
         {
-            if (data == null) return null!;
-
+            if (data == null || data.Count == 0) return null;
             var list = new List<SkillsDTO>();
+
             foreach (var d in data)
             {
                 list.Add(new SkillsDTO()
@@ -140,18 +141,18 @@ namespace proj_csharp_kiminoyume.Helpers
                     PersonId = d.PersonId,
                     SkillName = d.SkillName,
                     SkillType = d.SkillType,
-                    IsActive = d.IsActive.GetValueOrDefault()
+                    IsActive = d.IsActive
                 });
             }
 
             return list;
         }
 
-        private static List<ProjectsDTO> ConvertProjectsModelToDTO(ICollection<Projects> data)
+        private static List<ProjectsDTO>? ConvertProjectsModelToDTO(ICollection<Projects> data)
         {
-            if (data == null) return null!;
-
+            if (data == null || data.Count == 0) return null;
             var list = new List<ProjectsDTO>();
+
             foreach (var d in data)
             {
                 list.Add(new ProjectsDTO()
@@ -161,21 +162,23 @@ namespace proj_csharp_kiminoyume.Helpers
                     ProjectName = d.ProjectName,
                     ProjectDescription = d.ProjectDescription,
                     ProjectStatus = d.ProjectStatus,
-                    IsActive = d.IsActive.GetValueOrDefault()
+                    IsActive = d.IsActive
                 });
             }
 
             return list;
         }
 
-        public static List<PersonDTO?> ConvertPersonModelToDTO(List<Person> persons)
+        public static List<PersonDTO>? ConvertPersonModelToDTO(List<Person> data)
         {
-            var result = new List<PersonDTO?>();
-            if (persons.Count > 0)
+            if (data == null || data.Count == 0) return null;
+            var result = new List<PersonDTO>();
+
+            if (data.Count > 0)
             {
-                foreach (var person in persons)
+                foreach (var person in data)
                 {
-                    var personDTO = ConvertModelToDTO.ConvertPersonModelToDTO(person);
+                    var personDTO = ConvertPersonModelToDTO(person);
                     if (personDTO != null)
                     {
                         result.Add(personDTO);

@@ -17,6 +17,6 @@
         public bool IsActive { get; set; }
 
         public int PersonId { get; set; }
-        public List<WorkExperienceDTO> WorkExps { get; set; }
+        public List<WorkExperienceDTO>? WorkExps { get; set; } = new List<WorkExperienceDTO>();
     }
 }

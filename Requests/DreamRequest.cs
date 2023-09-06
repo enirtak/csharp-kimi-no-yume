@@ -9,7 +9,7 @@ namespace proj_csharp_kiminoyume.Requests
             public DreamCategoryDTO Category { get; set; }
         }
 
-        public class CategoryIdRequest
+        public class DreamIdRequest
         {
             public int Id { get; set; }
         }

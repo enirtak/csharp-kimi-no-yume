@@ -20,15 +20,14 @@ namespace proj_csharp_kiminoyume.Controllers
         [HttpPost]
         public async Task<ProfileResponse?> CreateProfile(ProfileRequest request)
         {
+            if (request is null || request?.Person is null) return null;
             var response = new ProfileResponse();
 
             try
             {
-                //request.Person = _profileBusinessLogic.CreateDummyPersonRequest();
-
                 var dtoRequest = ConvertDTOToModel.ConvertPersonDTOToModel(request.Person);
                 var result = await _profileBusinessLogic.CreateNewProfile(dtoRequest);
-                if (result != null)
+                if (result is not null)
                 {
                     response.IsSuccess = true;
                     response.Person = ConvertModelToDTO.ConvertPersonModelToDTO(result);
@@ -44,13 +43,15 @@ namespace proj_csharp_kiminoyume.Controllers
         }
 
         [HttpGet]
-        public async Task<ProfileListResponse> GetProfileList(ProfileListRequest request)
+        public async Task<ProfileListResponse?> GetProfileList(ProfileListRequest request)
         {
+            if (request is null) return null;
             var response = new ProfileListResponse();
+
             try
             {
                 var profileList = await _profileBusinessLogic.GetProfileList(request.IsGetAll);
-                if (profileList != null && profileList.Count > 0)
+                if (profileList is not null && profileList.Count > 0)
                 {
                     var profilesDTO = ConvertModelToDTO.ConvertPersonModelToDTO(profileList);
                     response.Persons = profilesDTO;
@@ -73,7 +74,7 @@ namespace proj_csharp_kiminoyume.Controllers
             try
             {
                 var result = await _profileBusinessLogic.GetProfile();
-                if (result != null)
+                if (result is not null)
                 {
                     var profileDTO = ConvertModelToDTO.ConvertPersonModelToDTO(result);
                     response.Person = profileDTO;
@@ -90,16 +91,17 @@ namespace proj_csharp_kiminoyume.Controllers
         }
 
         [HttpPut]
-        public async Task<ProfileResponse> UpdateProfile(ProfileRequest request)
+        public async Task<ProfileResponse?> UpdateProfile(ProfileRequest request)
         {
+            if (request is null || request?.Person is null) return null;
             var response = new ProfileResponse();
+
             try
             {
-                //request.Person = _profileBusinessLogic.CreateDummyPersonRequest()!;
                 var modelRequest = ConvertDTOToModel.ConvertPersonDTOToModel(request.Person);
 
                 var result = await _profileBusinessLogic.UpdateProfile(modelRequest);
-                if (result != null)
+                if (result is not null)
                 {
                     response.Person = ConvertModelToDTO.ConvertPersonModelToDTO(result);
                 }

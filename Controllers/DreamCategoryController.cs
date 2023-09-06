@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure;
+using Microsoft.AspNetCore.Mvc;
 using proj_csharp_kiminoyume.Helpers;
+using proj_csharp_kiminoyume.Responses;
 using proj_csharp_kiminoyume.Services.DreamCategory;
 using static proj_csharp_kiminoyume.Requests.DreamRequest;
 using static proj_csharp_kiminoyume.Responses.DreamResponse;
@@ -22,96 +24,94 @@ namespace proj_csharp_kiminoyume.Controllers
         //[AllowAnonymous]
         public async Task<CategoryResponse> GetCategories()
         {
-            var response = new CategoryResponse();
-
             try
             {
-                response.Categories = await _businessLogic.GetCategoriesList();
-                response.IsSuccess = true;
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.ErrorMessage = ex.Message.ToString();
-            }
+                var categoriesList = await _businessLogic.GetCategoriesList();
 
-            return response;
+                return new CategoryResponse()
+                {
+                    Categories = categoriesList,
+                    IsSuccess = true
+                };
+            }
+            catch
+            {
+                throw;
+            }
         }
 
         [HttpPost]
-        public async Task<CategoryItemResponse> CreateNewCategory([FromBody] CategoryRequest request)
+        public async Task<CategoryItemResponse?> CreateNewCategory([FromBody] CategoryRequest request)
         {
+            if (request is null || request?.Category is null) return null;
             var response = new CategoryItemResponse();
-            if (request == null) return response;
 
             try
             {
-                var model = ConvertDTOToModel.ConvertCategoryDTOToModel(request.Category);
-                if (model != null)
+                var categoryModel = ConvertDTOToModel.ConvertCategoryDTOToModel(request.Category);
+                if (categoryModel is not null)
                 {
-                    var result = await _businessLogic.CreateCategory(model);
-                    if (result != null)
+                    var newCategory = await _businessLogic.CreateCategory(categoryModel);
+                    if (newCategory is not null)
                     {
-                        response.Category = ConvertModelToDTO.ConvertCategoryModelToDTO(result);
+                        response.Category = ConvertModelToDTO.ConvertCategoryModelToDTO(newCategory);
                         response.IsSuccess = true;
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.ErrorMessage = ex.Message.ToString();
-            }
 
-            return response;
+                return response;
+            }
+            catch
+            {
+                throw;
+            }
         }
 
         [HttpPost]
-        public async Task<CategoryItemResponse> UpdateCategory([FromBody] CategoryRequest request)
+        public async Task<CategoryItemResponse?> UpdateCategory([FromBody] CategoryRequest request)
         {
+            if (request is null || request?.Category is null) return null;
             var response = new CategoryItemResponse();
-            if (request == null) return response;
 
             try
             {
-                var model = ConvertDTOToModel.ConvertCategoryDTOToModel(request.Category);
-                if (model != null)
+                var categoryModel = ConvertDTOToModel.ConvertCategoryDTOToModel(request.Category);
+                if (categoryModel is not null)
                 {
-                    var result = await _businessLogic.UpdateCategory(model);
-                    if (result != null)
+                    var updatedCategory = await _businessLogic.UpdateCategory(categoryModel);
+                    if (updatedCategory is not null)
                     {
-                        response.Category = ConvertModelToDTO.ConvertCategoryModelToDTO(result);
+                        response.Category = ConvertModelToDTO.ConvertCategoryModelToDTO(updatedCategory);
                         response.IsSuccess = true;
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.ErrorMessage = ex.Message.ToString();
-            }
 
-            return response;
+                return response;
+            }
+            catch
+            {
+                throw;
+            }
         }
 
         [HttpPost]
-        public async Task<CategoryItemResponse> DeleteCategory([FromBody] CategoryIdRequest category)
+        public async Task<BaseResponse?> DeleteCategory([FromBody] DreamIdRequest request)
         {
-            var response = new CategoryItemResponse();
-            if (category != null && category.Id == default) return response;
+            if (request is null || request?.Id is null) return null;
 
             try
             {
-                await _businessLogic.DeleteCategory(category!.Id);
-                response.IsSuccess = true;
-            }
-            catch (Exception ex)
-            {
-                response.ErrorMessage = ex.Message.ToString();
-                response.IsSuccess = false;
-            }
+                await _businessLogic.DeleteCategory(request.Id);
 
-            return response;
+                return new BaseResponse()
+                {
+                    IsSuccess = true
+                };
+            }
+            catch
+            {
+                throw;
+            }
         }
     }
 }

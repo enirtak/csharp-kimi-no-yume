@@ -97,17 +97,15 @@ namespace proj_csharp_kiminoyume.Controllers
             return response;
         }
 
-        [HttpDelete]
-        public async Task<DreamItemResponse> DeleteDream([FromBody] DreamDictionaryRequest request)
+        [HttpPost]
+        public async Task<DreamItemResponse> DeleteDream([FromBody] DreamIdRequest request)
         {
             var response = new DreamItemResponse();
             if (request == null) return response;
 
             try
             {
-                var model = ConvertDTOToModel.ConvertDictionaryDTOToModel(request.DreamItem);
-                if (model != null) await _businessLogic.DeleteDream(model);
-
+                await _businessLogic.DeleteDream(request.Id);
                 response.IsSuccess = true;
             }
             catch (Exception ex)
