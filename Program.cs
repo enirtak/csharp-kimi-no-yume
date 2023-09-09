@@ -12,6 +12,8 @@ using proj_csharp_kiminoyume.Services.DreamDictionary;
 using proj_csharp_kiminoyume.Services.Profile;
 using proj_csharp_kiminoyume.Services.Redis;
 using System.Text;
+using System.Reflection;
+using System.IO;
 
 namespace proj_csharp_kiminoyume
 {
@@ -22,8 +24,10 @@ namespace proj_csharp_kiminoyume
         {
             var angularConnection = "_allowAngularConnection";
             var builder = WebApplication.CreateBuilder(args);
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();
 
-            // Add services to the container.
+            // Add/Register services to the (DI) container.
             var cors = builder.Services.AddCors(opt =>
             {
                 opt.AddPolicy(
@@ -88,6 +92,11 @@ namespace proj_csharp_kiminoyume
                         Array.Empty<string>()
                     }
                 });
+
+                // Set the comments path for the Swagger JSON and UI.
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                opt.IncludeXmlComments(xmlPath);
             });
 
             // https://medium.com/c-sharp-progarmming/asp-net-core-5-jwt-authentication-tutorial-with-example-api-aa59e80d02da
@@ -133,6 +142,7 @@ namespace proj_csharp_kiminoyume
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
+            // Enable middleware
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger(x =>

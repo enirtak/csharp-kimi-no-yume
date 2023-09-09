@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using proj_csharp_kiminoyume.Helpers;
+using proj_csharp_kiminoyume.Responses;
 using proj_csharp_kiminoyume.Services.DreamDictionary;
 using static proj_csharp_kiminoyume.Requests.DreamRequest;
 using static proj_csharp_kiminoyume.Responses.DreamResponse;
@@ -20,9 +20,18 @@ namespace proj_csharp_kiminoyume.Controllers
             _businessLogic = businessLogic;
         }
 
+        /// <summary>
+        /// Returns a list of dictionary of dreams.
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200">Returns the list.</response>
+        /// <response code="500">If there is an error processing the request.</response>
+        [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
         //[AllowAnonymous]
-        public async Task<DreamListResponse> GetDreamDictionary()
+        public async Task<ActionResult<DreamListResponse>> GetDreamDictionary()
         {
             var response = new DreamListResponse();
 
@@ -32,20 +41,29 @@ namespace proj_csharp_kiminoyume.Controllers
                 response.DictionaryList = list;
                 response.IsSuccess = true;
 
-                return response;
+                return Ok(response);
             }
-            catch (Exception ex)
+            catch
             {
-                response.IsSuccess = false;
-                response.ErrorMessage = ex.Message.ToString();
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
-
-            return response;
         }
 
+        /// <summary>
+        /// Creates a new dream dictionary.
+        /// </summary>
+        /// <returns>Returns DreamItemResponse</returns>
+        /// <param name="request">Create New Dream Request</param>
+        /// <response code="200">Returns the new dream.</response>
+        /// <response code="500">If there is an error processing the request.</response> 
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost]
-        public async Task<DreamItemResponse> CreateNewDream([FromBody] DreamDictionaryRequest request)
+        public async Task<ActionResult<DreamItemResponse>?> CreateNewDream([FromBody] DreamDictionaryRequest request)
         {
+            if (request is null || request?.DreamItem is null) return null;
             var response = new DreamItemResponse();
 
             try
@@ -60,19 +78,30 @@ namespace proj_csharp_kiminoyume.Controllers
                         response.IsSuccess = true;
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.ErrorMessage = ex.Message.ToString();
-            }
 
-            return response;
+                return Ok(response);
+            }
+            catch 
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
+        /// <summary>
+        /// Updates a dream dictionary.
+        /// </summary>
+        /// <returns>Returns DreamItemResponse</returns>
+        /// <param name="request">Update Dream Request</param>
+        /// <response code="200">Returns the updated dream.</response>
+        /// <response code="500">If there is an error processing the request.</response> 
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost]
-        public async Task<DreamItemResponse> UpdateDream([FromBody] DreamDictionaryRequest request)
+        public async Task<ActionResult<DreamItemResponse>?> UpdateDream([FromBody] DreamDictionaryRequest request)
         {
+            if (request is null || request?.DreamItem is null) return null;
             var response = new DreamItemResponse();
 
             try
@@ -87,34 +116,43 @@ namespace proj_csharp_kiminoyume.Controllers
                         response.IsSuccess = true;
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.ErrorMessage = ex.Message.ToString();
-            }
 
-            return response;
+                return Ok(response);
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
+        /// <summary>
+        /// Performs soft delete on Dream Dictionary entry.
+        /// </summary>
+        /// <returns>Returns the status of the deletion.</returns>
+        /// <param name="request">Delete Dream Request</param>
+        /// <response code="200">Returns IsSuccess</response>
+        /// <response code="500">If there is an error processing the request.</response> 
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost]
-        public async Task<DreamItemResponse> DeleteDream([FromBody] DreamIdRequest request)
+        public async Task<ActionResult<BaseResponse>?> DeleteDream([FromBody] DreamIdRequest request)
         {
-            var response = new DreamItemResponse();
-            if (request == null) return response;
+            if (request == null) return null;
+            var response = new BaseResponse();
 
             try
             {
                 await _businessLogic.DeleteDream(request.Id);
                 response.IsSuccess = true;
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.ErrorMessage = ex.Message.ToString();
-            }
 
-            return response;
+                return Ok(response);
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
     }
 }

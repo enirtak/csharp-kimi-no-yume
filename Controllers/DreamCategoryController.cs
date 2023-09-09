@@ -20,28 +20,48 @@ namespace proj_csharp_kiminoyume.Controllers
             _businessLogic = businessLogic;
         }
 
+        /// <summary>
+        /// Creates a list of dream category.
+        /// </summary>
+        /// <returns>Returns a CategoryResponse</returns>
+        /// <response code="200">Returns the list of dream category.</response>
+        /// <response code="500">If there is an error processing the request.</response> 
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
         //[AllowAnonymous]
-        public async Task<CategoryResponse> GetCategories()
+        public async Task<ActionResult<CategoryResponse>> GetCategories()
         {
+            var response = new CategoryResponse();
             try
             {
                 var categoriesList = await _businessLogic.GetCategoriesList();
+                response.Categories = categoriesList;
+                response.IsSuccess = true;
 
-                return new CategoryResponse()
-                {
-                    Categories = categoriesList,
-                    IsSuccess = true
-                };
+                return Ok(response);
             }
             catch
             {
-                throw;
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
+        /// <summary>
+        /// Creates a new dream category.
+        /// </summary>
+        /// <returns>Returns CategoryItemResponse</returns>
+        /// <param name="request">Create New Dream Category Request</param>
+        /// <response code="200">Returns the new dream category.</response>
+        /// <response code="500">If there is an error processing the request.</response> 
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost]
-        public async Task<CategoryItemResponse?> CreateNewCategory([FromBody] CategoryRequest request)
+        public async Task<ActionResult<CategoryItemResponse>?> CreateNewCategory([FromBody] CategoryRequest request)
         {
             if (request is null || request?.Category is null) return null;
             var response = new CategoryItemResponse();
@@ -59,16 +79,27 @@ namespace proj_csharp_kiminoyume.Controllers
                     }
                 }
 
-                return response;
+                return Ok(response);
             }
             catch
             {
-                throw;
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
+        /// <summary>
+        /// Updates a dream category.
+        /// </summary>
+        /// <returns>Returns CategoryItemResponse</returns>
+        /// <param name="request">Update Dream Category Request</param>
+        /// <response code="200">Returns the updated dream category.</response>
+        /// <response code="500">If there is an error processing the request.</response> 
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost]
-        public async Task<CategoryItemResponse?> UpdateCategory([FromBody] CategoryRequest request)
+        public async Task<ActionResult<CategoryItemResponse>?> UpdateCategory([FromBody] CategoryRequest request)
         {
             if (request is null || request?.Category is null) return null;
             var response = new CategoryItemResponse();
@@ -86,31 +117,41 @@ namespace proj_csharp_kiminoyume.Controllers
                     }
                 }
 
-                return response;
+                return Ok(response);
             }
             catch
             {
-                throw;
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
+        /// <summary>
+        /// Performs soft delete on Dream Category entry.
+        /// </summary>
+        /// <returns>Returns the status of the deletion.</returns>
+        /// <param name="request">Delete Dream Category Request</param>
+        /// <response code="200">Returns IsSuccess</response>
+        /// <response code="500">If there is an error processing the request.</response> 
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost]
-        public async Task<BaseResponse?> DeleteCategory([FromBody] DreamIdRequest request)
+        public async Task<ActionResult<BaseResponse>?> DeleteCategory([FromBody] DreamIdRequest request)
         {
             if (request is null || request?.Id is null) return null;
+            var response = new BaseResponse();
 
             try
             {
                 await _businessLogic.DeleteCategory(request.Id);
+                response.IsSuccess = true;
 
-                return new BaseResponse()
-                {
-                    IsSuccess = true
-                };
+                return Ok(response);
             }
             catch
             {
-                throw;
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
     }
