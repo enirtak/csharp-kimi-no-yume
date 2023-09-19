@@ -54,11 +54,11 @@ namespace proj_csharp_kiminoyume.Controllers
         /// </summary>
         /// <returns>Returns DreamItemResponse</returns>
         /// <param name="request">Create New Dream Request</param>
-        /// <response code="200">Returns the new dream.</response>
+        /// <response code="201">Returns the new dream.</response>
         /// <response code="500">If there is an error processing the request.</response> 
         [Produces("application/json")]
         [Consumes("application/json")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost]
         public async Task<ActionResult<DreamItemResponse>?> CreateNewDream([FromBody] DreamDictionaryRequest request)

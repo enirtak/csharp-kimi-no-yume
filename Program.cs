@@ -145,11 +145,9 @@ namespace proj_csharp_kiminoyume
             // Enable middleware
             if (app.Environment.IsDevelopment())
             {
-                app.UseSwagger(x =>
-                {
-                    x.SerializeAsV2 = true;
-                });
+                app.UseSwagger(x => { x.SerializeAsV2 = true; });
                 app.UseSwaggerUI();
+                app.UseDeveloperExceptionPage();
             }
 
             app.UseMiddleware<ExceptionHandling>();

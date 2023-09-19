@@ -1,5 +1,4 @@
-﻿using Azure;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using proj_csharp_kiminoyume.Helpers;
 using proj_csharp_kiminoyume.Responses;
 using proj_csharp_kiminoyume.Services.DreamCategory;
@@ -54,12 +53,10 @@ namespace proj_csharp_kiminoyume.Controllers
         /// </summary>
         /// <returns>Returns CategoryItemResponse</returns>
         /// <param name="request">Create New Dream Category Request</param>
-        /// <response code="200">Returns the new dream category.</response>
+        /// <response code="201">Returns the new dream category.</response>
         /// <response code="500">If there is an error processing the request.</response> 
         [Produces("application/json")]
         [Consumes("application/json")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost]
         public async Task<ActionResult<CategoryItemResponse>?> CreateNewCategory([FromBody] CategoryRequest request)
         {
@@ -79,7 +76,7 @@ namespace proj_csharp_kiminoyume.Controllers
                     }
                 }
 
-                return Ok(response);
+                return Created(nameof(CreateNewCategory), response);
             }
             catch
             {
