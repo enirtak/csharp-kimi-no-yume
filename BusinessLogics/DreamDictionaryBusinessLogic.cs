@@ -5,7 +5,6 @@ using proj_csharp_kiminoyume.Helpers;
 using proj_csharp_kiminoyume.Models;
 using proj_csharp_kiminoyume.Services.DreamDictionary;
 using proj_csharp_kiminoyume.Services.Redis;
-using static proj_csharp_kiminoyume.Responses.DreamResponse;
 
 namespace proj_csharp_kiminoyume.BusinessLogics
 {
@@ -54,9 +53,9 @@ namespace proj_csharp_kiminoyume.BusinessLogics
 
                 if (!isRedisDown) await _cache.Set(_dreamListKey, list);
             }
-            catch (Exception ex)
+            catch 
             {
-                throw new Exception(ex.Message);
+                throw;
             }
 
             return dreamList;
@@ -73,9 +72,9 @@ namespace proj_csharp_kiminoyume.BusinessLogics
                     return newDream?.Entity;
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                throw new Exception(ex.Message);
+                throw;
             }
 
             return null;
@@ -97,9 +96,9 @@ namespace proj_csharp_kiminoyume.BusinessLogics
                     }
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                throw new Exception(ex.Message);
+                throw;
             }
 
             return null;
@@ -117,9 +116,9 @@ namespace proj_csharp_kiminoyume.BusinessLogics
                             update.SetProperty(dream => dream.IsActive, false));
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                throw new Exception(ex.Message);
+                throw;
             }
         }
     }

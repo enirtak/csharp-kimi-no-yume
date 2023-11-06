@@ -19,6 +19,17 @@ namespace proj_csharp_kiminoyume.Helpers
             context.Entry(newEntity!).State = EntityState.Added;
         }
 
+        /// <summary>
+        /// Update/Insert a record
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="context"></param>
+        /// <param name="newEntities"></param>
+        /// <param name="oldEntities"></param>
+        /// <param name="match">
+        /// Example: (newEntity, old) => { return newEntity.Id == old.Id and old.JobApplicationId == currentEntry.Id; })
+        /// where currentEntry is the current parent record
+        /// </param>
         public static void UpSertEntities<T>(AppDBContext context, ICollection<T> newEntities, ICollection<T> oldEntities, Func<T, T, bool> match)
             where T : class
         {

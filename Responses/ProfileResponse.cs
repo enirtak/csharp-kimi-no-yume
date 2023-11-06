@@ -9,6 +9,6 @@ namespace proj_csharp_kiminoyume.Responses
 
     public class ProfileListResponse : BaseResponse
     {
-        public List<PersonDTO?> Persons { get; set; } = new List<PersonDTO?>();
+        public List<PersonDTO>? Persons { get; set; } 
     }
 }

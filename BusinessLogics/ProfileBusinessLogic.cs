@@ -4,7 +4,6 @@ using proj_csharp_kiminoyume.DTOs;
 using proj_csharp_kiminoyume.Helpers;
 using proj_csharp_kiminoyume.Models;
 using proj_csharp_kiminoyume.Services.Profile;
-using System.Security.Principal;
 
 namespace proj_csharp_kiminoyume.BusinessLogics
 {
@@ -27,13 +26,13 @@ namespace proj_csharp_kiminoyume.BusinessLogics
                     await _context.SaveChangesAsync();
                     return newProfile?.Entity;
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
 
-            return null;
+                return null;
+            }
+            catch 
+            {
+                throw;
+            }
         }
 
         public async Task<List<Person>> GetProfileList(bool getAll = false)
@@ -54,9 +53,8 @@ namespace proj_csharp_kiminoyume.BusinessLogics
 
                 return profile;
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine(ex);
                 throw;
             }
         }
@@ -77,12 +75,10 @@ namespace proj_csharp_kiminoyume.BusinessLogics
 
                 return profile;
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine(ex);
+                throw;
             }
-
-            return null;
         }
 
         // https://stackoverflow.com/questions/27176014/how-to-add-update-child-entities-when-updating-a-parent-entity-in-ef
@@ -92,46 +88,31 @@ namespace proj_csharp_kiminoyume.BusinessLogics
             {
                 if (request != null && request.Id != default)
                 {
-                    var oldEntity = await GetProfileById(request.Id);
-                    if (oldEntity != null)
+                    var currentProfile = await GetProfileById(request.Id);
+                    if (currentProfile != null)
                     {
-                        // IsActive = false will soft delete a record
-                        // update parent - Person
-                        var updatedPerson = _context.Entry(oldEntity);
+                        var updatedPerson = _context.Entry(currentProfile);
                         updatedPerson.CurrentValues.SetValues(request);
 
-                        // create/update children
-                        // addresses
                         UpSertEntityHelper<Address>
-                            .UpSertEntities(_context, request.Addresses, oldEntity.Addresses,
-                            (request, old) => { return request.PersonId == oldEntity.Id && old.Id == old.Id; });
+                            .UpSertEntities(_context, request.Addresses, currentProfile.Addresses,
+                            (newEntity, old) => { return newEntity.Id == old.Id && old.PersonId == currentProfile.Id; });
 
-                        // employers & work exps
-                        UpSertEmployers(request.Employers, oldEntity.Employers, oldEntity.Id);
-
-                        //// skills
-                        //UpSertEntityHelper<Skills>
-                        //    .UpSertEntities(_context, request.Skills, oldEntity.Skills, 
-                        //    (request,old) => { return request.PersonId == oldEntity.Id && old.Id == old.Id; });
-
-                        //// projects
-                        //UpSertEntityHelper<Projects>
-                        //    .UpSertEntities(_context, request.Projects, oldEntity.Projects, 
-                        //    (request,old) => { return request.PersonId == oldEntity.Id && old.Id == old.Id; });
+                        UpSertEmployers(request.Employers, currentProfile.Employers, currentProfile.Id);
 
                         updatedPerson.State = EntityState.Modified;
                         await _context.SaveChangesAsync();
+
                         return updatedPerson.Entity;
                     }
                 }
+
+                return null;
             }
-            catch (Exception ex)
+            catch 
             {
-                Console.WriteLine(ex.Message.ToString());
                 throw;
             }
-
-            return null;
         }
         
         public async Task<Person?> GetProfileById(int id)
@@ -141,101 +122,24 @@ namespace proj_csharp_kiminoyume.BusinessLogics
                 var profile = 
                     await _context
                         .Persons
-                            .Include(x => x.Addresses.OrderByDescending(x => x.CreatedDate).Where(y => y.IsActive == true))
-                            .Include(x => x.Employers.Where(x => x.IsActive == true))
-                                .ThenInclude(x => x.WorkExperience.Where(x => x.IsActive == true))
+                            .Include(x => x.Addresses
+                                .OrderByDescending(x => x.CreatedDate)
+                                .Where(y => y.IsActive == true))
+                            .Include(x => x.Employers
+                                .Where(x => x.IsActive == true))
+                                .ThenInclude(x => x.WorkExperience
+                                    .Where(x => x.IsActive == true))
                             .FirstOrDefaultAsync(x => x.Id == id && x.IsActive == true);
 
                 return profile;
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine(ex);
+                throw;
             }
-
-            return null;
         }
 
         #region Non-Abstract Methods
-        public PersonDTO? CreateDummyPersonRequest()
-        {
-            return new PersonDTO()
-            {
-                FirstName = "FN",
-                LastName = "LN",
-                PhoneNumber = "123456789",
-                EmailAddress = "test@mail.com",
-                GitHub = "GitHub.com",
-                LinkedIn = "LinkedIn.com",
-                AboutMe = "About Me",
-                Addresses = new List<AddressDTO> {
-                    new AddressDTO()
-                    {
-                        Id = 4,
-                        PersonId = 4,
-                        Address1 = "218 Conaway Rd",
-                        City = "Bloomingdale",
-                        State = "GA",
-                        Zip = "31302",
-                        Country = "USA"
-                    }
-                },
-                Employers = new List<EmployerDTO> {
-                    new EmployerDTO()
-                    {
-                        CompanyName = "Test Company 1",
-                        Position = "Position 1",
-                        Salary = 1000,
-                        Address1 = "Employee Address1",
-                        City = "City",
-                        State = "",
-                        Zip = "1605",
-                        Country = "PH",
-                        StartDate = DateTime.Now,
-                        EndDate = DateTime.Now,
-                        WorkExps = new List<WorkExperienceDTO>
-                        {
-                            new WorkExperienceDTO()
-                            {
-                                Description = "Description 1",
-                            },
-                            new WorkExperienceDTO()
-                            {
-                                Description = "Description 2",
-                            },
-                            new WorkExperienceDTO()
-                            {
-                                Description = "Description 3",
-                            }
-                        }
-                    }
-                },
-                Skills = new List<SkillsDTO> {
-                    new SkillsDTO()
-                    {
-                        SkillName = "Skill 1",
-                        SkillType = 1
-                    },
-                    new SkillsDTO()
-                    {
-                        SkillName = "Skill 1",
-                        SkillType = 2
-                    }
-                },
-                Projects = new List<ProjectsDTO> {
-                    new ProjectsDTO()
-                    {
-                        ProjectName = "Project 1",
-                        ProjectDescription = "Project 1 Description"
-                    },
-                    new ProjectsDTO()
-                    {
-                        ProjectName = "Project 2",
-                        ProjectDescription = "Project 2 Description"
-                    }
-                }
-            };
-        }
         private void UpSertEmployers(ICollection<Employer> employers, ICollection<Employer> oldEmployers, int personId)
         {
             if (employers.Count == 0) return;

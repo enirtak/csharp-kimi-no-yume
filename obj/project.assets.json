@@ -4782,9 +4782,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\mop_s\\Documents\\Projects\\proj-csharp-kiminoyume\\proj-csharp-kiminoyume.csproj",
-      "projectName": "proj-csharp-kiminoyume",
-      "projectPath": "C:\\Users\\mop_s\\Documents\\Projects\\proj-csharp-kiminoyume\\proj-csharp-kiminoyume.csproj",
+      "projectUniqueName": "C:\\Users\\mop_s\\Documents\\Projects\\proj-csharp-kiminoyume\\katorin-app.csproj",
+      "projectName": "katorin-app",
+      "projectPath": "C:\\Users\\mop_s\\Documents\\Projects\\proj-csharp-kiminoyume\\katorin-app.csproj",
       "packagesPath": "C:\\Users\\mop_s\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\mop_s\\Documents\\Projects\\proj-csharp-kiminoyume\\obj\\",
       "projectStyle": "PackageReference",

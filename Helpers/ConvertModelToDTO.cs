@@ -1,6 +1,8 @@
 ﻿using proj_csharp_kiminoyume.DTOs;
+using proj_csharp_kiminoyume.DTOs.JobApplication;
 using proj_csharp_kiminoyume.Models;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using proj_csharp_kiminoyume.Models.JobApplication;
+using System.Collections.Generic;
 
 namespace proj_csharp_kiminoyume.Helpers
 {
@@ -174,16 +176,69 @@ namespace proj_csharp_kiminoyume.Helpers
             if (data == null || data.Count == 0) return null;
             var result = new List<PersonDTO>();
 
-            if (data.Count > 0)
+            foreach (var person in data)
             {
-                foreach (var person in data)
+                var personDTO = ConvertPersonModelToDTO(person);
+                if (personDTO != null)
                 {
-                    var personDTO = ConvertPersonModelToDTO(person);
-                    if (personDTO != null)
-                    {
-                        result.Add(personDTO);
-                    }
+                    result.Add(personDTO);
                 }
+            }
+
+            return result;
+        }
+
+        public static List<JobApplicationDTO>? ConvertJobApplicationListModelToDTO(List<JobApplication> data)
+        {
+            if (data == null || data.Count == 0) return null;
+            var result = new List<JobApplicationDTO>();
+
+            foreach (var job in data)
+            {
+                result.Add(ConvertJobModelToDTO(job));
+            }
+
+            return result;
+        }
+
+        public static JobApplicationDTO ConvertJobModelToDTO(JobApplication data)
+        {
+            var customFields = data.CustomFields?.Count > 0 ? ConvertJobAppFieldsModelToDTO(data.CustomFields) : null;
+
+            return new JobApplicationDTO()
+            {
+                Id = data.Id,
+                JobTitle = data.JobTitle,
+                CompanyName = data.CompanyName,
+                CompanyWebsite = data.CompanyWebsite,
+                WorkLocation = data.WorkLocation,
+                WorkArrangement = data.WorkArrangement,
+                ApplicationDate = data.ApplicationDate,
+                ApplicationStatus = data.ApplicationStatus,
+                ApplicationEmail = data.ApplicationEmail,
+                ApplicationSource = data.ApplicationSource,
+                JobType = data.JobType,
+                Salary = data.Salary,
+                IsActive = data.IsActive,
+                CustomFields = customFields
+            };
+        }
+
+        public static List<JobAppCustomFieldDTO>? ConvertJobAppFieldsModelToDTO(ICollection<JobAppCustomField> data)
+        {
+            if (data == null || data.Count == 0) return null;
+            var result = new List<JobAppCustomFieldDTO>();
+
+            foreach (var fields in data)
+            {
+                result.Add(new JobAppCustomFieldDTO()
+                {
+                    Id = fields.Id,
+                    JobApplicationId = fields.JobApplicationId,
+                    CustomFieldName = fields.CustomFieldName,
+                    FieldNameValue = fields.FieldNameValue,
+                    IsActive = fields.IsActive
+                });
             }
 
             return result;

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using proj_csharp_kiminoyume.Models;
+using proj_csharp_kiminoyume.Models.JobApplication;
 
 namespace proj_csharp_kiminoyume.Data
 {
@@ -17,6 +18,8 @@ namespace proj_csharp_kiminoyume.Data
         public DbSet<WorkExperience> WorkExperiences { get; set; }
         public DbSet<Skills> Skills { get; set; }
         public DbSet<Projects> Projects { get; set; }
+        public DbSet<JobApplication> JobApplications { get; set; }
+        public DbSet<JobAppCustomField> JobApplicationCustomFields { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -127,6 +130,9 @@ namespace proj_csharp_kiminoyume.Data
 
             modelBuilder.Entity<Projects>()
                 .ToTable(x => x.HasTrigger("trigger_projects_updated_date"));
+
+            modelBuilder.Entity<JobApplication>()
+                .ToTable(x => x.HasTrigger("trigger_jobapp_updated_date"));
             #endregion
         }
 

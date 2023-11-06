@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "pilWx5cWcx0gEWvBF69qXQNRFIi+rDv266SUsJn8JyOTsJF7JptoNXN5zZ0hXYRFeLbLsP5MjtG3vQJbrA+oMg==",
+  "dgSpecHash": "ZsC/vxAyGIm+En14/D58uGyJI8MmtH0owBsGEV0jp1pgc5E1Z3OcKBF99+Iv9O34zgyZCWE739yl6dxhB5/wag==",
   "success": true,
-  "projectFilePath": "C:\\Users\\mop_s\\Documents\\Projects\\proj-csharp-kiminoyume\\proj-csharp-kiminoyume.csproj",
+  "projectFilePath": "C:\\Users\\mop_s\\Documents\\Projects\\proj-csharp-kiminoyume\\katorin-app.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\mop_s\\.nuget\\packages\\azure.core\\1.24.0\\azure.core.1.24.0.nupkg.sha512",
     "C:\\Users\\mop_s\\.nuget\\packages\\azure.identity\\1.6.0\\azure.identity.1.6.0.nupkg.sha512",

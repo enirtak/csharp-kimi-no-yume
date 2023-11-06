@@ -20,23 +20,25 @@ namespace proj_csharp_kiminoyume.Controllers
         [HttpPost]
         public async Task<ProfileResponse?> CreateProfile(ProfileRequest request)
         {
-            if (request is null || request?.Person is null) return null;
+            if (request == null || request?.Person == null) return null;
             var response = new ProfileResponse();
 
             try
             {
                 var dtoRequest = ConvertDTOToModel.ConvertPersonDTOToModel(request.Person);
-                var result = await _profileBusinessLogic.CreateNewProfile(dtoRequest);
-                if (result is not null)
+                if (dtoRequest != null)
                 {
-                    response.IsSuccess = true;
-                    response.Person = ConvertModelToDTO.ConvertPersonModelToDTO(result);
+                    var result = await _profileBusinessLogic.CreateNewProfile(dtoRequest);
+                    if (result != null)
+                    {
+                        response.IsSuccess = true;
+                        response.Person = ConvertModelToDTO.ConvertPersonModelToDTO(result);
+                    }
                 }
             }
-            catch (Exception ex)
+            catch 
             {
-                response.IsSuccess = false;
-                response.ErrorMessage = ex.Message;
+                throw;
             }
 
             return response;
@@ -45,23 +47,25 @@ namespace proj_csharp_kiminoyume.Controllers
         [HttpGet]
         public async Task<ProfileListResponse?> GetProfileList(ProfileListRequest request)
         {
-            if (request is null) return null;
+            if (request == null) return null;
             var response = new ProfileListResponse();
 
             try
             {
                 var profileList = await _profileBusinessLogic.GetProfileList(request.IsGetAll);
-                if (profileList is not null && profileList.Count > 0)
+                if (profileList != null && profileList.Count > 0)
                 {
                     var profilesDTO = ConvertModelToDTO.ConvertPersonModelToDTO(profileList);
-                    response.Persons = profilesDTO;
+                    if (profileList != null && profileList.Count > 0)
+                    {
+                        response.Persons = profilesDTO;
+                    }
                     response.IsSuccess = true;
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                response.IsSuccess = false;
-                response.ErrorMessage = ex.Message;
+                throw;
             }
 
             return response;
@@ -74,17 +78,19 @@ namespace proj_csharp_kiminoyume.Controllers
             try
             {
                 var result = await _profileBusinessLogic.GetProfile();
-                if (result is not null)
+                if (result != null)
                 {
                     var profileDTO = ConvertModelToDTO.ConvertPersonModelToDTO(result);
-                    response.Person = profileDTO;
+                    if (profileDTO != null)
+                    {
+                        response.Person = profileDTO;
+                    }
                     response.IsSuccess = true;
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                response.IsSuccess = false;
-                response.ErrorMessage = ex.Message;
+                throw;
             }
 
             return response;
@@ -93,25 +99,26 @@ namespace proj_csharp_kiminoyume.Controllers
         [HttpPut]
         public async Task<ProfileResponse?> UpdateProfile(ProfileRequest request)
         {
-            if (request is null || request?.Person is null) return null;
+            if (request == null || request?.Person == null) return null;
             var response = new ProfileResponse();
 
             try
             {
                 var modelRequest = ConvertDTOToModel.ConvertPersonDTOToModel(request.Person);
-
-                var result = await _profileBusinessLogic.UpdateProfile(modelRequest);
-                if (result is not null)
+                if (modelRequest != null)
                 {
-                    response.Person = ConvertModelToDTO.ConvertPersonModelToDTO(result);
-                }
+                    var result = await _profileBusinessLogic.UpdateProfile(modelRequest);
+                    if (result != null)
+                    {
+                        response.Person = ConvertModelToDTO.ConvertPersonModelToDTO(result);
+                    }
 
-                response.IsSuccess = true;
+                    response.IsSuccess = true;
+                }
             }
-            catch (Exception ex)
+            catch
             {
-                response.IsSuccess = false;
-                response.ErrorMessage = ex.Message;
+                throw;
             }
 
             return response;

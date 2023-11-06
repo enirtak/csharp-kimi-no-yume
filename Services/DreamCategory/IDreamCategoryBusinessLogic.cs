@@ -7,6 +7,6 @@ namespace proj_csharp_kiminoyume.Services.DreamCategory
         Task<List<DreamCategoryDTO>> GetCategoriesList();
         Task<Models.DreamCategory?> CreateCategory(Models.DreamCategory category);
         Task<Models.DreamCategory?> UpdateCategory(Models.DreamCategory category);
-        Task DeleteCategory(int categoryId);
+        Task DeleteCategory(int id);
     }
 }

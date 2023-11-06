@@ -1,5 +1,7 @@
 ﻿using proj_csharp_kiminoyume.DTOs;
+using proj_csharp_kiminoyume.DTOs.JobApplication;
 using proj_csharp_kiminoyume.Models;
+using proj_csharp_kiminoyume.Models.JobApplication;
 using System.Drawing.Drawing2D;
 using System.Linq;
 
@@ -54,7 +56,7 @@ namespace proj_csharp_kiminoyume.Helpers
                 Other = data.Other,
                 PhoneNumber = data.PhoneNumber,
                 WebsiteUrl = data.WebsiteUrl,
-                IsActive = data.IsActive,
+                IsActive = (bool)data.IsActive!,
                 Addresses = ConvertAddressDTOToModel(data.Addresses!)!,
                 Employers = ConvertEmployerDTOToModel(data.Employers!)!,
                 Skills = ConvertSkillsDTOToModel(data.Skills!)!,
@@ -79,7 +81,7 @@ namespace proj_csharp_kiminoyume.Helpers
                     State = d.State,
                     Zip = d.Zip,
                     Country = d.Country,
-                    IsActive = d.IsActive
+                    IsActive = (bool)d.IsActive!
                 });
             }
 
@@ -108,7 +110,7 @@ namespace proj_csharp_kiminoyume.Helpers
                     State = d.State,
                     Zip = d.Zip,
                     Country = d.Country,
-                    IsActive = d.IsActive,
+                    IsActive = (bool)d.IsActive!,
                     WorkExperience = ConvertWorkExpDTOToModel(d.WorkExps!)!
                 });
             }
@@ -127,7 +129,7 @@ namespace proj_csharp_kiminoyume.Helpers
                     Id = d.Id,
                     EmployerId = d.EmployerId,
                     Description = d.Description,
-                    IsActive = d.IsActive
+                    IsActive = (bool)d.IsActive!
                 });
             }
 
@@ -147,7 +149,7 @@ namespace proj_csharp_kiminoyume.Helpers
                     PersonId = d.PersonId,
                     SkillName = d.SkillName,
                     SkillType = d.SkillType,
-                    IsActive = d.IsActive
+                    IsActive = (bool)d.IsActive!
                 });
             }
 
@@ -168,11 +170,54 @@ namespace proj_csharp_kiminoyume.Helpers
                     ProjectName = d.ProjectName,
                     ProjectDescription = d.ProjectDescription,
                     ProjectStatus = d.ProjectStatus,
-                    IsActive = d.IsActive
+                    IsActive = (bool)d.IsActive!
                 });
             }
 
             return list;
+        }
+
+        public static JobApplication ConvertJobDTOToModel(JobApplicationDTO data)
+        {
+            var customFields = data.CustomFields?.Count > 0 ? ConvertJobAppFieldsDTOToModel(data.CustomFields) : null;
+
+            return new JobApplication()
+            {
+                Id = data.Id,
+                JobTitle = data.JobTitle,
+                CompanyName = data.CompanyName,
+                CompanyWebsite = data.CompanyWebsite,
+                WorkLocation = data.WorkLocation,
+                WorkArrangement = data.WorkArrangement,
+                ApplicationDate = data.ApplicationDate,
+                ApplicationStatus = data.ApplicationStatus,
+                ApplicationEmail = data.ApplicationEmail,
+                ApplicationSource = data.ApplicationSource,
+                JobType = data.JobType,
+                Salary = data.Salary,
+                IsActive = (bool)data.IsActive!,
+                CustomFields = customFields
+            };
+        }
+
+        public static List<JobAppCustomField>? ConvertJobAppFieldsDTOToModel(List<JobAppCustomFieldDTO> data)
+        {
+            if (data == null || data.Count == 0) return null;
+            var result = new List<JobAppCustomField>();
+
+            foreach (var fields in data)
+            {
+                result.Add(new JobAppCustomField()
+                {
+                    Id = fields.Id,
+                    JobApplicationId = fields.JobApplicationId,
+                    CustomFieldName = fields.CustomFieldName,
+                    FieldNameValue = fields.FieldNameValue,
+                    IsActive = (bool)fields.IsActive!
+                });
+            }
+
+            return result;
         }
     }
 }

@@ -14,6 +14,7 @@ using proj_csharp_kiminoyume.Services.Redis;
 using System.Text;
 using System.Reflection;
 using System.IO;
+using proj_csharp_kiminoyume.Services.JobApplication;
 
 namespace proj_csharp_kiminoyume
 {
@@ -60,6 +61,7 @@ namespace proj_csharp_kiminoyume
             builder.Services.AddScoped<IDreamDictionaryBusinessLogic, DreamDictionaryBusinessLogic>();
             builder.Services.AddScoped<IDreamCategoryBusinessLogic, DreamCategoryBusinessLogic>();
             builder.Services.AddScoped<IProfileBusinessLogic, ProfileBusinessLogic>();
+            builder.Services.AddScoped<IJobApplicationBusinessLogic, JobApplicationBusinessLogic>();
             builder.Services.AddTransient<ExceptionHandling>();
 
             builder.Services.AddControllers();
