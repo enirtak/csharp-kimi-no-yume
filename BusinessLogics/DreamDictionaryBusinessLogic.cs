@@ -3,13 +3,12 @@ using proj_csharp_kiminoyume.Data;
 using proj_csharp_kiminoyume.DTOs;
 using proj_csharp_kiminoyume.Helpers;
 using proj_csharp_kiminoyume.Models;
-using proj_csharp_kiminoyume.Services.DreamDictionary;
+using proj_csharp_kiminoyume.Services;
 using proj_csharp_kiminoyume.Services.Redis;
-using static proj_csharp_kiminoyume.Responses.DreamResponse;
 
 namespace proj_csharp_kiminoyume.BusinessLogics
 {
-    public class DreamDictionaryBusinessLogic : IDreamDictionaryBusinessLogic
+    public class DreamDictionaryBusinessLogic : IEntityActionBusinessLogic<DreamDictionary>
     {
         private readonly AppDBContext _context;
         private readonly IRedisCacheService _cache;
@@ -62,64 +61,75 @@ namespace proj_csharp_kiminoyume.BusinessLogics
             return dreamList;
         }
 
-        public async Task<DreamDictionary?> CreateDream(DreamDictionary request)
+        public async Task<List<DreamDictionary>> GetList()
         {
             try
             {
-                if (request is not null)
-                {
-                    var newDream = _context.DreamDictionaries.Add(request);
-                    await _context.SaveChangesAsync();
-                    return newDream?.Entity;
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+                var list = await _context.DreamDictionaries
+                    .AsNoTracking()
+                    .Where(x => x.IsActive)
+                    .OrderBy(x => x.DreamName)
+                    .ToListAsync();
 
-            return null;
+                return list;
+            }
+            catch
+            {
+                throw;
+            }
         }
 
-        public async Task<DreamDictionary?> UpdateDream(DreamDictionary request)
+        public async Task<DreamDictionary?> Create(DreamDictionary request)
         {
+            if (request == null) return null;
+
             try
             {
-                if (request is not null)
-                {
-                    var oldEntity = await _context.DreamDictionaries.FindAsync(request.Id);
-                    if (oldEntity is not null)
-                    {
-                        _context.Entry(oldEntity).CurrentValues.SetValues(request);
-                        await _context.SaveChangesAsync();
+                var newDream = _context.DreamDictionaries.Add(request);
+                await _context.SaveChangesAsync();
 
-                        return oldEntity;
-                    }
-                }
+                return newDream?.Entity;
             }
-            catch (Exception ex)
+            catch
             {
-                throw new Exception(ex.Message);
+                throw;
             }
-
-            return null;
         }
 
-        public async Task DeleteDream(int dreamId)
+        public async Task<DreamDictionary?> Update(DreamDictionary request)
         {
+            if (request == null) return null;
+
             try
             {
-                if (dreamId != default)
-                {
-                    await _context.DreamDictionaries
-                        .Where(x => x.Id == dreamId)
-                        .ExecuteUpdateAsync(update => 
+                var oldEntity = await _context.DreamDictionaries.FindAsync(request.Id);
+                if (oldEntity == null) return null;
+
+                _context.Entry(oldEntity).CurrentValues.SetValues(request);
+                await _context.SaveChangesAsync();
+
+                return oldEntity;
+            }
+            catch 
+            {
+                throw;
+            }
+        }
+
+        public async Task Delete(int id)
+        {
+            if (id == default) return;
+
+            try
+            {
+                await _context.DreamDictionaries
+                        .Where(x => x.Id == id)
+                        .ExecuteUpdateAsync(update =>
                             update.SetProperty(dream => dream.IsActive, false));
-                }
             }
-            catch (Exception ex)
+            catch
             {
-                throw new Exception(ex.Message);
+                throw;
             }
         }
     }

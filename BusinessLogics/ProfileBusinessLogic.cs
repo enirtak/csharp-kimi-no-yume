@@ -3,12 +3,12 @@ using proj_csharp_kiminoyume.Data;
 using proj_csharp_kiminoyume.DTOs;
 using proj_csharp_kiminoyume.Helpers;
 using proj_csharp_kiminoyume.Models;
-using proj_csharp_kiminoyume.Services.Profile;
-using System.Security.Principal;
+using proj_csharp_kiminoyume.Services;
 
 namespace proj_csharp_kiminoyume.BusinessLogics
 {
-    public class ProfileBusinessLogic : IProfileBusinessLogic
+    // https://stackoverflow.com/questions/27176014/how-to-add-update-child-entities-when-updating-a-parent-entity-in-ef
+    public class ProfileBusinessLogic: IEntityRetrievalBusinessLogic<Person>
     {
         private readonly AppDBContext _context;
 
@@ -17,143 +17,121 @@ namespace proj_csharp_kiminoyume.BusinessLogics
             _context = context;
         }
 
-        public async Task<Person?> CreateNewProfile(Person request)
+        public async Task<Person?> GetById(int id)
         {
             try
             {
-                if (request != null)
+                var result = await GetList();
+
+                if (id == default)
                 {
-                    var newProfile = _context.Persons.Add(request);
-                    await _context.SaveChangesAsync();
-                    return newProfile?.Entity;
+                    var latestProfile = result.SingleOrDefault(x => x.IsActive);
+                    return latestProfile;
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
 
-            return null;
-        }
-
-        public async Task<List<Person>> GetProfileList(bool getAll = false)
-        {
-            try
-            {
-                var profile = await _context.Persons
-                    .Where(x => x.IsActive == getAll)
-                        .Include(x => x.Addresses
-                            .Where(y => y.IsActive == getAll))
-                        .Include(x => x.Employers
-                            .Where(x => x.IsActive == getAll))
-                                .ThenInclude(x => x.WorkExperience
-                                    .Where(x => x.IsActive == getAll))
-                    .AsNoTracking()
-                    .ToListAsync();
-
-
+                var profile = result.SingleOrDefault(x => x.IsActive && x.Id == id);
                 return profile;
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine(ex);
                 throw;
             }
         }
 
-        public async Task<Person?> GetProfile()
-        {
-            try
-            {
-                var profile = await _context.Persons
-                    .OrderByDescending(x => x.CreatedDate)
-                        .Include(x => x.Addresses
-                            .Where(y => y.IsActive))
-                        .Include(x => x.Employers
-                            .Where(x => x.IsActive))
-                                .ThenInclude(x => x.WorkExperience
-                                    .Where(x => x.IsActive))
-                    .FirstOrDefaultAsync(x => x.IsActive);
-
-                return profile;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-
-            return null;
-        }
-
-        // https://stackoverflow.com/questions/27176014/how-to-add-update-child-entities-when-updating-a-parent-entity-in-ef
-        public async Task<Person?> UpdateProfile(Person request)
-        {
-            try
-            {
-                if (request != null && request.Id != default)
-                {
-                    var oldEntity = await GetProfileById(request.Id);
-                    if (oldEntity != null)
-                    {
-                        // IsActive = false will soft delete a record
-                        // update parent - Person
-                        var updatedPerson = _context.Entry(oldEntity);
-                        updatedPerson.CurrentValues.SetValues(request);
-
-                        // create/update children
-                        // addresses
-                        UpSertEntityHelper<Address>
-                            .UpSertEntities(_context, request.Addresses, oldEntity.Addresses,
-                            (request, old) => { return request.PersonId == oldEntity.Id && old.Id == old.Id; });
-
-                        // employers & work exps
-                        UpSertEmployers(request.Employers, oldEntity.Employers, oldEntity.Id);
-
-                        //// skills
-                        //UpSertEntityHelper<Skills>
-                        //    .UpSertEntities(_context, request.Skills, oldEntity.Skills, 
-                        //    (request,old) => { return request.PersonId == oldEntity.Id && old.Id == old.Id; });
-
-                        //// projects
-                        //UpSertEntityHelper<Projects>
-                        //    .UpSertEntities(_context, request.Projects, oldEntity.Projects, 
-                        //    (request,old) => { return request.PersonId == oldEntity.Id && old.Id == old.Id; });
-
-                        updatedPerson.State = EntityState.Modified;
-                        await _context.SaveChangesAsync();
-                        return updatedPerson.Entity;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message.ToString());
-                throw;
-            }
-
-            return null;
-        }
-        
-        public async Task<Person?> GetProfileById(int id)
+        public async Task<List<Person>> GetList()
         {
             try
             {
                 var profile = 
                     await _context
                         .Persons
-                            .Include(x => x.Addresses.OrderByDescending(x => x.CreatedDate).Where(y => y.IsActive == true))
-                            .Include(x => x.Employers.Where(x => x.IsActive == true))
-                                .ThenInclude(x => x.WorkExperience.Where(x => x.IsActive == true))
-                            .FirstOrDefaultAsync(x => x.Id == id && x.IsActive == true);
+                            .AsNoTracking()
+                            .OrderByDescending(x => x.CreatedDate)
+                                .ThenByDescending(x => x.LastUpdatedDate)
+                                .Include(y => y.Addresses
+                                    .Where(y => y.IsActive))
+                                .Include(emp => emp.Employers
+                                    .Where(emp => emp.IsActive))
+                                        .ThenInclude(we => we.WorkExperience
+                                            .Where(we => we.IsActive))
+                            .ToListAsync();
 
                 return profile;
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine(ex);
+                throw;
             }
+        }
 
-            return null;
+        public async Task<Person?> Create(Person request)
+        {
+            if (request == null) return null;
+
+            try
+            {
+                var newProfile = _context.Persons.Add(request);
+                await _context.SaveChangesAsync();
+
+                return newProfile?.Entity;
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public async Task<Person?> Update(Person request)
+        {
+            if (request == null || request?.Id == default) return null;
+
+            try
+            {
+                var oldEntity = await GetById(request!.Id);
+                if (oldEntity == null) return null;
+
+                var updatedPerson = _context.Entry(oldEntity);
+                updatedPerson.CurrentValues.SetValues(request);
+
+                UpSertEntityHelper<Address>
+                    .UpSertEntities(
+                        _context, 
+                        request.Addresses, 
+                        oldEntity.Addresses,
+                        (request, old) => 
+                        { 
+                            return request.PersonId == oldEntity.Id && old.Id == old.Id; 
+                        });
+
+                UpSertEmployers(request.Employers, oldEntity.Employers, oldEntity.Id);
+
+                updatedPerson.State = EntityState.Modified;
+
+                await _context.SaveChangesAsync();
+
+                return updatedPerson.Entity;
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public async Task Delete(int id)
+        {
+            if (id == default) return;
+
+            try
+            {
+                await _context.Persons
+                    .Where(x => x.Id == id)
+                    .ExecuteUpdateAsync(update =>
+                        update.SetProperty(person => person.IsActive, false));
+            }
+            catch
+            {
+                throw;
+            }
         }
 
         #region Non-Abstract Methods

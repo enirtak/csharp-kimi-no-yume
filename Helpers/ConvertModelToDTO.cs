@@ -6,6 +6,7 @@ namespace proj_csharp_kiminoyume.Helpers
 {
     public static class ConvertModelToDTO
     {
+        #region Dream Dictionary
         public static DreamDictionaryDTO? ConvertDictionaryModelToDTO(DreamDictionary dictionary)
         {
             if (dictionary == null) return null;
@@ -19,6 +20,23 @@ namespace proj_csharp_kiminoyume.Helpers
             };
         }
 
+        public static List<DreamDictionaryDTO> ConvertDreamListModelToDTO(List<DreamDictionary> list)
+        {
+            var categoriesList = new List<DreamDictionaryDTO>();
+
+            if (list == null || list.Count == 0) return categoriesList;
+
+            foreach (var item in list)
+            {
+                var dream = ConvertDictionaryModelToDTO(item);
+                if (dream != null) categoriesList.Add(dream);
+            }
+
+            return categoriesList;
+        }
+        #endregion Dream Dictionary
+
+        #region Dream Category
         public static DreamCategoryDTO? ConvertCategoryModelToDTO(DreamCategory model)
         {
             if (model == null) return null;
@@ -32,6 +50,23 @@ namespace proj_csharp_kiminoyume.Helpers
             };
         }
 
+        public static List<DreamCategoryDTO> ConvertCategoryListModelToDTO(List<DreamCategory> list)
+        {
+            var categoriesList = new List<DreamCategoryDTO>();
+
+            if (list == null || list.Count == 0) return categoriesList;
+
+            foreach (var item in list)
+            {
+                var category = ConvertCategoryModelToDTO(item);
+                if (category != null) categoriesList.Add(category);
+            }
+
+            return categoriesList;
+        }
+        #endregion Dream Category
+
+        #region Person
         public static PersonDTO? ConvertPersonModelToDTO(Person? data)
         {
             if (data == null) return null;
@@ -169,7 +204,7 @@ namespace proj_csharp_kiminoyume.Helpers
             return list;
         }
 
-        public static List<PersonDTO>? ConvertPersonModelToDTO(List<Person> data)
+        public static List<PersonDTO>? ConvertPersonListModelToDTO(List<Person> data)
         {
             if (data == null || data.Count == 0) return null;
             var result = new List<PersonDTO>();
@@ -188,5 +223,6 @@ namespace proj_csharp_kiminoyume.Helpers
 
             return result;
         }
+        #endregion Person
     }
 }

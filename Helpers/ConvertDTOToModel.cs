@@ -1,12 +1,11 @@
 ﻿using proj_csharp_kiminoyume.DTOs;
 using proj_csharp_kiminoyume.Models;
-using System.Drawing.Drawing2D;
-using System.Linq;
 
 namespace proj_csharp_kiminoyume.Helpers
 {
     public static class ConvertDTOToModel
     {
+        #region Dream Dictionary
         public static DreamDictionary? ConvertDictionaryDTOToModel(DreamDictionaryDTO dto)
         {
             if (dto == null) return null;
@@ -23,6 +22,9 @@ namespace proj_csharp_kiminoyume.Helpers
             return model;
         }
 
+        #endregion Dream Dictionary
+
+        #region Dream Category
         public static DreamCategory? ConvertCategoryDTOToModel(DreamCategoryDTO dto)
         {
             if (dto == null) return null;
@@ -37,7 +39,9 @@ namespace proj_csharp_kiminoyume.Helpers
 
             return model;
         }
+        #endregion Dream Category
 
+        #region Profile
         public static Person? ConvertPersonDTOToModel(PersonDTO data)
         {
             if (data == null) return null;
@@ -64,7 +68,7 @@ namespace proj_csharp_kiminoyume.Helpers
 
         private static List<Address>? ConvertAddressDTOToModel(List<AddressDTO> data)
         {
-            if (data is null || data.Count == 0) return null;
+            if (data == null || data.Count == 0) return null;
             var list = new List<Address>();
 
             foreach (var d in data)
@@ -88,7 +92,7 @@ namespace proj_csharp_kiminoyume.Helpers
 
         private static List<Employer>? ConvertEmployerDTOToModel(List<EmployerDTO> data)
         {
-            if (data is null || data.Count == 0) return null;
+            if (data == null || data.Count == 0) return null;
             var list = new List<Employer>();
 
             foreach (var d in data)
@@ -117,7 +121,7 @@ namespace proj_csharp_kiminoyume.Helpers
 
         private static List<WorkExperience>? ConvertWorkExpDTOToModel(List<WorkExperienceDTO> data)
         {
-            if (data is null || data.Count == 0) return null;
+            if (data == null || data.Count == 0) return null;
             var list = new List<WorkExperience>();
 
             foreach (var d in data)
@@ -136,10 +140,10 @@ namespace proj_csharp_kiminoyume.Helpers
 
         private static List<Skills>? ConvertSkillsDTOToModel(List<SkillsDTO> data)
         {
-            if (data is null || data.Count == 0) return null;
+            if (data == null || data.Count == 0) return null;
             var list = new List<Skills>();
 
-            foreach(var d in data)
+            foreach (var d in data)
             {
                 list.Add(new Skills()
                 {
@@ -156,10 +160,10 @@ namespace proj_csharp_kiminoyume.Helpers
 
         private static List<Projects>? ConvertProjectsDTOToModel(List<ProjectsDTO> data)
         {
-            if (data is null || data.Count == 0) return null;
+            if (data == null || data.Count == 0) return null;
             var list = new List<Projects>();
 
-            foreach(var d in data)
+            foreach (var d in data)
             {
                 list.Add(new Projects()
                 {
@@ -174,5 +178,6 @@ namespace proj_csharp_kiminoyume.Helpers
 
             return list;
         }
+        #endregion Dream Profile
     }
 }

@@ -2,8 +2,8 @@
 
 namespace proj_csharp_kiminoyume.Requests
 {
-    public class ProfileRequest
+    public class DreamCategoryRequest
     {
-        public PersonDTO? Person { get; set; }
+        public DreamCategoryDTO? Category { get; set; }
     }
 }

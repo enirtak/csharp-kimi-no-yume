@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using proj_csharp_kiminoyume.Helpers;
+using proj_csharp_kiminoyume.Models;
 using proj_csharp_kiminoyume.Requests;
 using proj_csharp_kiminoyume.Responses;
-using proj_csharp_kiminoyume.Services.Profile;
+using proj_csharp_kiminoyume.Services;
 
 namespace proj_csharp_kiminoyume.Controllers
 {
@@ -10,111 +11,176 @@ namespace proj_csharp_kiminoyume.Controllers
     [ApiController]
     public class ProfileController : ControllerBase
     {
-        private IProfileBusinessLogic _profileBusinessLogic;
+        private IEntityRetrievalBusinessLogic<Person> _businessLogic;
 
-        public ProfileController(IProfileBusinessLogic profileBusinessLogic)
+        public ProfileController(IEntityRetrievalBusinessLogic<Person> businessLogic)
         {
-            _profileBusinessLogic = profileBusinessLogic;
+            _businessLogic = businessLogic;
         }
 
+        /// <summary>
+        /// Creates a new profile.
+        /// </summary>
+        /// <returns>Returns ProfileResponse</returns>
+        /// <param name="request">Create New Profile Request</param>
+        /// <response code="201">Returns the new profile.</response>
+        /// <response code="500">If there is an error processing the request.</response> 
+        [Produces("application/json")]
+        [Consumes("application/json")]
         [HttpPost]
-        public async Task<ProfileResponse?> CreateProfile(ProfileRequest request)
+        public async Task<ActionResult<ProfileResponse>> CreateProfile(ProfileRequest request)
         {
-            if (request is null || request?.Person is null) return null;
             var response = new ProfileResponse();
+            if (request == null || request?.Person == null) return response;
 
             try
             {
                 var dtoRequest = ConvertDTOToModel.ConvertPersonDTOToModel(request.Person);
-                var result = await _profileBusinessLogic.CreateNewProfile(dtoRequest);
-                if (result is not null)
-                {
-                    response.IsSuccess = true;
-                    response.Person = ConvertModelToDTO.ConvertPersonModelToDTO(result);
-                }
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.ErrorMessage = ex.Message;
-            }
+                if (dtoRequest == null) return response;
 
-            return response;
+                var result = await _businessLogic.Create(dtoRequest);
+                if (result == null) return response;
+
+                response.IsSuccess = true;
+                response.Person = ConvertModelToDTO.ConvertPersonModelToDTO(result);
+                return Ok(response);
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError); 
+            }
         }
 
+        /// <summary>
+        /// Creates new profile.
+        /// </summary>
+        /// <returns>Returns a ProfileListResponse</returns>
+        /// <response code="200">Returns the list of profiles.</response>
+        /// <response code="500">If there is an error processing the request.</response> 
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
-        public async Task<ProfileListResponse?> GetProfileList(ProfileListRequest request)
+        public async Task<ActionResult<ProfileListResponse>> GetProfileList()
         {
-            if (request is null) return null;
             var response = new ProfileListResponse();
 
             try
             {
-                var profileList = await _profileBusinessLogic.GetProfileList(request.IsGetAll);
-                if (profileList is not null && profileList.Count > 0)
-                {
-                    var profilesDTO = ConvertModelToDTO.ConvertPersonModelToDTO(profileList);
-                    response.Persons = profilesDTO;
-                    response.IsSuccess = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.ErrorMessage = ex.Message;
-            }
+                var result = await _businessLogic.GetList();
+                if (result == null) return response;
 
-            return response;
+                var profileList = ConvertModelToDTO.ConvertPersonListModelToDTO(result);
+                if (profileList == null) return response;
+
+                response.Persons = profileList!;
+                response.IsSuccess = true;
+                return Ok(response);
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
+        /// <summary>
+        /// Updates a profile.
+        /// </summary>
+        /// <returns>Returns a ProfileListResponse</returns>
+        /// <response code="200">Returns the updated profile.</response>
+        /// <response code="500">If there is an error processing the request.</response> 
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
-        public async Task<ProfileResponse> GetCurrentProfile()
+        public async Task<ActionResult<ProfileResponse>> GetCurrentProfile()
         {
             var response = new ProfileResponse();
+
             try
             {
-                var result = await _profileBusinessLogic.GetProfile();
-                if (result is not null)
-                {
-                    var profileDTO = ConvertModelToDTO.ConvertPersonModelToDTO(result);
-                    response.Person = profileDTO;
-                    response.IsSuccess = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.ErrorMessage = ex.Message;
-            }
+                var result = await _businessLogic.GetById(0);
+                if (result == null) return response;
 
-            return response;
+                var profileDTO = ConvertModelToDTO.ConvertPersonModelToDTO(result);
+                if (profileDTO == null) return response;
+
+                response.Person = profileDTO;
+                response.IsSuccess = true;
+
+                return Ok(response);
+            }
+            catch
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
+        /// <summary>
+        /// Updates a profile.
+        /// </summary>
+        /// <returns>Returns ProfileResponse</returns>
+        /// <param name="request">Update Profile Request</param>
+        /// <response code="200">Returns the updated profile category.</response>
+        /// <response code="500">If there is an error processing the request.</response> 
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPut]
-        public async Task<ProfileResponse?> UpdateProfile(ProfileRequest request)
+        public async Task<ActionResult<ProfileResponse>> UpdateProfile(ProfileRequest request)
         {
-            if (request is null || request?.Person is null) return null;
             var response = new ProfileResponse();
+            if (request == null || request?.Person == null) return response;
 
             try
             {
-                var modelRequest = ConvertDTOToModel.ConvertPersonDTOToModel(request.Person);
+                var result = ConvertDTOToModel.ConvertPersonDTOToModel(request.Person);
+                if (result == null) return response;
 
-                var result = await _profileBusinessLogic.UpdateProfile(modelRequest);
-                if (result is not null)
-                {
-                    response.Person = ConvertModelToDTO.ConvertPersonModelToDTO(result);
-                }
+                var profile = await _businessLogic.Update(result);
+                if (result == null) return response;
+
+                response.Person = ConvertModelToDTO.ConvertPersonModelToDTO(result);
+                response.IsSuccess = true;
+                return Ok(response);
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Performs soft delete on Profile entry.
+        /// </summary>
+        /// <returns>Returns the status of the deletion.</returns>
+        /// <param name="request">Delete Dream Request</param>
+        /// <response code="200">Returns IsSuccess</response>
+        /// <response code="500">If there is an error processing the request.</response> 
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [HttpPut]
+        public async Task<ActionResult<BaseResponse>> DeleteProfile([FromBody] int id)
+        {
+            var response = new BaseResponse();
+            if (id == default) return response;
+
+            try
+            {
+                await _businessLogic.Delete(id);
 
                 response.IsSuccess = true;
+                return Ok(response);
             }
-            catch (Exception ex)
+            catch
             {
-                response.IsSuccess = false;
-                response.ErrorMessage = ex.Message;
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
-
-            return response;
         }
     }
 }
