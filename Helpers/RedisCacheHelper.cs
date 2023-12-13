@@ -16,7 +16,7 @@ namespace proj_csharp_kiminoyume.Helpers
             }
             catch
             {
-                return true;
+                throw;
             }
         }
     }

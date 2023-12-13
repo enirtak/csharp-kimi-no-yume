@@ -1,13 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using proj_csharp_kiminoyume.Data;
-using proj_csharp_kiminoyume.DTOs;
-using proj_csharp_kiminoyume.Helpers;
 using proj_csharp_kiminoyume.Models;
-using proj_csharp_kiminoyume.Services.DreamCategory;
+using proj_csharp_kiminoyume.Services;
 
 namespace proj_csharp_kiminoyume.BusinessLogics
 {
-    public class DreamCategoryBusinessLogic : IDreamCategoryBusinessLogic
+    public class DreamCategoryBusinessLogic: IEntityActionBusinessLogic<DreamCategory>
     {
         private readonly AppDBContext _context;
 
@@ -16,94 +14,77 @@ namespace proj_csharp_kiminoyume.BusinessLogics
             _context = context;
         }
 
-        public async Task<List<DreamCategoryDTO>> GetCategoriesList()
+        public async Task<List<DreamCategory>> GetList()
         {
-            var categoriesList = new List<DreamCategoryDTO>();
-
             try
             {
-                var list = await _context.DreamCategories
-                    .Where(x => x.IsActive == true)
-                    .OrderBy(x => x.CategoryName)
-                    .ToListAsync();
+                var list = await 
+                    _context.DreamCategories
+                        .AsNoTracking()
+                        .Where(x => x.IsActive)
+                        .OrderBy(x => x.CategoryName)
+                        .ToListAsync();
 
-                if (list is not null && list.Count > 0)
-                {
-                    foreach (var item in list)
-                    {
-                        var category = ConvertModelToDTO.ConvertCategoryModelToDTO(item);
-                        if (category is not null) categoriesList.Add(category);
-                    }
-                }
+                return list;
             }
             catch
             {
                 throw;
             }
-
-            return categoriesList;
         }
 
-        public async Task<DreamCategory?> CreateCategory(DreamCategory category)
+        public async Task<DreamCategory?> Create(DreamCategory request)
         {
+            if (request == null) return null;
+
             try
             {
-                if (category is not null)
-                {
-                    var newEntity = _context.DreamCategories.Add(category);
-                    await _context.SaveChangesAsync();
-                    return newEntity?.Entity;
-                }
+                var newEntity = _context.DreamCategories.Add(request);
+                await _context.SaveChangesAsync();
+
+                return newEntity?.Entity;
             }
             catch
             {
                 throw;
             }
-
-            return null;
         }
 
-        public async Task<DreamCategory?> UpdateCategory(DreamCategory category)
+        // https://stackoverflow.com/a/30824229 https://stackoverflow.com/a/60919670
+        public async Task<DreamCategory?> Update(DreamCategory request)
         {
-            DreamCategory? dreamCategory = null;
+            if (request == null || request?.Id == default) return null;
 
             try
             {
-                if (category is not null && category.Id != default)
-                {
-                    dreamCategory = await _context.DreamCategories.FindAsync(category.Id);
-                    if (dreamCategory is not null)
-                    {
-                        // https://stackoverflow.com/a/30824229 https://stackoverflow.com/a/60919670
-                        // context.Entry(entity).State = EntityState.Modified | DbSet.Update -> this will update all the fields on the entity
-                        // DbSet.Attach(entity) -> will only update dirty fields
+                var dreamCategory = await _context.DreamCategories.FindAsync(request?.Id);
+                if (dreamCategory == null) return null;
 
-                        _context.Entry(dreamCategory).CurrentValues.SetValues(category);
-                        await _context.SaveChangesAsync();
+                // context.Entry(entity).State = EntityState.Modified | DbSet.Update -> this will update all the fields on the entity
+                // _context.DreamCategories.Update(category); -- shorthand of code above
+                // DbSet.Attach(entity) -> will only update dirty fields & EF will start tracking on the entity
 
-                        return dreamCategory;
-                    }
-                }
+                _context.Entry(dreamCategory).CurrentValues.SetValues(request!); // same with DbSet.Attach
+                await _context.SaveChangesAsync();
+
+                return dreamCategory;
             }
             catch
             {
                 throw;
             }
-
-            return dreamCategory;
         }
 
-        public async Task DeleteCategory(int categoryId)
+        public async Task Delete(int id)
         {
+            if (id == default) return;
+
             try
             {
-                if (categoryId != default)
-                {
-                    await _context.DreamCategories
-                            .Where(x => x.Id == categoryId)
-                            .ExecuteUpdateAsync(update =>
-                                update.SetProperty(dream => dream.IsActive, false));
-                }
+                await _context.DreamCategories
+                        .Where(x => x.Id == id)
+                        .ExecuteUpdateAsync(update =>
+                            update.SetProperty(dream => dream.IsActive, false));
             }
             catch
             {

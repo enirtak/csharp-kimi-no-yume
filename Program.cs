@@ -6,10 +6,9 @@ using Microsoft.OpenApi.Models;
 using proj_csharp_kiminoyume.BusinessLogics;
 using proj_csharp_kiminoyume.Data;
 using proj_csharp_kiminoyume.Middlewares;
+using proj_csharp_kiminoyume.Models;
+using proj_csharp_kiminoyume.Services;
 using proj_csharp_kiminoyume.Services.Auth;
-using proj_csharp_kiminoyume.Services.DreamCategory;
-using proj_csharp_kiminoyume.Services.DreamDictionary;
-using proj_csharp_kiminoyume.Services.Profile;
 using proj_csharp_kiminoyume.Services.Redis;
 using System.Text;
 
@@ -53,9 +52,9 @@ namespace proj_csharp_kiminoyume
 
             builder.Services.AddScoped<TokenService>();
             builder.Services.AddScoped<IRedisCacheService, RedisCacheService>();
-            builder.Services.AddScoped<IDreamDictionaryBusinessLogic, DreamDictionaryBusinessLogic>();
-            builder.Services.AddScoped<IDreamCategoryBusinessLogic, DreamCategoryBusinessLogic>();
-            builder.Services.AddScoped<IProfileBusinessLogic, ProfileBusinessLogic>();
+            builder.Services.AddScoped<IEntityActionBusinessLogic<DreamDictionary>, DreamDictionaryBusinessLogic>();
+            builder.Services.AddScoped<IEntityActionBusinessLogic<DreamCategory>, DreamCategoryBusinessLogic>();
+            builder.Services.AddScoped<IEntityRetrievalBusinessLogic<Person>, ProfileBusinessLogic>();
             builder.Services.AddTransient<ExceptionHandling>();
 
             builder.Services.AddControllers();
@@ -160,3 +159,5 @@ namespace proj_csharp_kiminoyume
         }
     }
 }
+
+// https://entityframeworkdocs.readthedocs.io/zh/latest/getting-started/aspnet5/existing-db.html
